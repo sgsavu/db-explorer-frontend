@@ -25,9 +25,19 @@ export const Table: React.FC<Props> = ({
     })
   }, [name])
 
+  const onRefresh = () => {
+    websocket.send({
+      protocol: PROTOCOL.GET_TABLE,
+      payload: name.toLowerCase()
+    })
+  }
+
   return (
     <>
-      <button className='backButton' onClick={onBack}>Back</button>
+      <div className='buttonsContainer'>
+      <button className='backButton' onClick={onBack}>Back ↩️</button>
+      <button className='refreshButton' onClick={onRefresh}>Refresh 🔄</button>
+      </div>
       <h1>
         {name}
       </h1>
@@ -43,11 +53,11 @@ export const Table: React.FC<Props> = ({
           {entries.map(row =>
             <tr key={row.ID as string}>
               {Object.values(row).map(cell =>
-                <td>{cell as string}</td>
+                <td key={cell as string}>{cell as string}</td>
               )}
               <td>
                 <button onClick={() => onDelete(row.ID as string)}>
-                  🗑️
+                ❌
                 </button>
               </td>
             </tr>

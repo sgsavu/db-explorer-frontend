@@ -107,6 +107,12 @@ const createWebsocket = (url?: string) => {
             if (!ws) { return }
             ws.send(JSON.stringify(message))
         },
+        close: () => {
+            if (ws) {
+                teardown(ws)
+                closeHandler() 
+            }
+        },
         subscribe: (fn: SubscriberFn) => {
             const idx = subIndex
             subIndex = subIndex + 1
