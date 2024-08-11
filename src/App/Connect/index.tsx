@@ -2,7 +2,7 @@ import './index.css'
 import { Field } from '../../Components/Field'
 import { FormEventHandler, useEffect, useState } from 'react'
 import { localStorage, StorageDBConnect } from '../../state/localStorage'
-import { createGetTablesRequest, network } from '../../state/network'
+import { createGetTablesRequest, isGetTablesRejection, isGetTablesRequest, network } from '../../state/network'
 import { connect$ } from '../../state/connect'
 
 export type DBConnect = {
@@ -35,6 +35,7 @@ const onSubmit: FormEventHandler<HTMLFormElement> = e => {
 }
 
 export const Connect: React.FC = () => {
+  const [error, setError] = useState<string | null>(null)
   const [recentLogins, setRecentLogins] = useState<Array<StorageDBConnect>>([])
 
   useEffect(() => {
@@ -47,6 +48,24 @@ export const Connect: React.FC = () => {
     })
 
     return () => { cleanup() }
+  }, [])
+
+  useEffect(() => {
+    const sub = network.in.listen(resp => {
+      if (isGetTablesRejection(resp)) {
+        setError(resp.body.error)
+      }
+    })
+    return () => { sub.unsubscribe() }
+  }, [])
+
+  useEffect(() => {
+    const sub = network.out.listen(request => {
+      if (isGetTablesRequest(request)) {
+        setError(null)
+      }
+    })
+    return () => { sub.unsubscribe() }
   }, [])
 
   return (
@@ -96,6 +115,10 @@ export const Connect: React.FC = () => {
           <button type='submit'>Connect</button>
         </div>
       </form>
+
+      <div>
+        {error}
+      </div>
 
       {recentLogins.length !== 0 && <h3>Recent logins</h3>}
       {recentLogins.map(login =>

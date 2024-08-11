@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, SetStateAction } from "react";
 import { Subject } from "./state/subject";
 
 export const useObservable = <T,>(observable: Subject<T>) => {
     const [value, setValue] = useState<T>()
 
     useEffect(() => {
-        const sub = observable.subscribe(setValue)
+        const sub = observable.subscribe(v => setValue(v as SetStateAction<T | undefined>))
         return () => { sub.unsubscribe() }
     }, [observable])
 

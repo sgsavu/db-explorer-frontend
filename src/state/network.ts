@@ -27,17 +27,32 @@ export enum MESSAGE_ALIAS {
     GET_TABLE = "GET_TABLE"
 }
 
+export const isGetTablesRequest = (request: Request): request is Request =>
+    request.alias === MESSAGE_ALIAS.GET_TABLES
+
 export type GetTablesResponseBody = {
     result: Array<string>
 }
 
-export const isGetTablesResponse = (response: Response): response is Response<GetTablesResponseBody> => response.alias === MESSAGE_ALIAS.GET_TABLES
+export const isGetTablesResponse = (response: Response): response is Response<GetTablesResponseBody> =>
+    response.alias === MESSAGE_ALIAS.GET_TABLES &&
+    response.statusCode === STATUS_CODE.OK
+
+export type GetTablesRejectionBody = {
+    error: string
+}
+
+export const isGetTablesRejection = (response: Response): response is Response<GetTablesRejectionBody> =>
+    response.alias === MESSAGE_ALIAS.GET_TABLES &&
+    response.statusCode !== STATUS_CODE.OK
 
 export type GetTableResponseBody = {
     result: Array<Record<string, unknown>>
 }
 
-export const isGetTableResponse = (response: Response): response is Response<GetTableResponseBody> => response.alias === MESSAGE_ALIAS.GET_TABLE
+export const isGetTableResponse = (response: Response): response is Response<GetTableResponseBody> =>
+    response.alias === MESSAGE_ALIAS.GET_TABLE &&
+    response.statusCode === STATUS_CODE.OK
 
 export const createGetTablesRequest = (connect: DBConnect): Request => {
     return {
@@ -63,7 +78,9 @@ export const createGetTableRequest = (connect: DBConnect, tableName: string): Re
     }
 }
 
-export const isDeleteRecordResponse = (response: Response): response is Response<GetTableResponseBody> => response.alias === MESSAGE_ALIAS.DELETE_RECORD
+export const isDeleteRecordResponse = (response: Response): response is Response<GetTableResponseBody> =>
+    response.alias === MESSAGE_ALIAS.DELETE_RECORD &&
+    response.statusCode === STATUS_CODE.OK
 
 export const createDeleteRecordRequest = (connect: DBConnect, tableName: string, recordId: string): Request => {
     return {
@@ -77,7 +94,9 @@ export const createDeleteRecordRequest = (connect: DBConnect, tableName: string,
     }
 }
 
-export const isInsertRecordResponse = (response: Response): response is Response<GetTableResponseBody> => response.alias === MESSAGE_ALIAS.INSERT_RECORD
+export const isInsertRecordResponse = (response: Response): response is Response<GetTableResponseBody> =>
+    response.alias === MESSAGE_ALIAS.INSERT_RECORD &&
+    response.statusCode === STATUS_CODE.OK
 
 export const createInsertRecordRequest = (connect: DBConnect, tableName: string, record: Array<string>): Request => {
     return {
