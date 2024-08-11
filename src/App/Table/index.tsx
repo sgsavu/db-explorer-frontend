@@ -1,6 +1,6 @@
 import { WEBSOCKET_MESSAGE_TYPE, websocket } from '../../state/websocket'
 import './index.css'
-import { useCallback } from 'react'
+import { FormEventHandler, useCallback } from 'react'
 
 type Props = {
   entries: Array<Record<string, unknown>>
@@ -32,8 +32,23 @@ export const Table: React.FC<Props> = ({
     })
   }
 
+  const onAdd = useCallback<FormEventHandler<HTMLFormElement>>(e => {
+    e.preventDefault()
+
+    const formData = new FormData(e.target as HTMLFormElement)
+    const record = Array.from(formData.entries()).map(el => el[1])
+
+    websocket.send({
+      type: WEBSOCKET_MESSAGE_TYPE.INSERT_RECORD,
+      payload: {
+        table: name,
+        record 
+      }
+    })
+  }, [name])
+
   return (
-    <>
+    <form onSubmit={onAdd}>
       <div className='buttonsContainer'>
         <button onClick={onBack}>Back ↩️</button>
         <button onClick={onRefresh}>Refresh 🔄</button>
@@ -56,14 +71,26 @@ export const Table: React.FC<Props> = ({
                 <td key={cell as string}>{cell as string}</td>
               )}
               <td>
-                <button onClick={() => onDelete(row.ID as string)}>
+                <button type='button' onClick={() => onDelete(row.ID as string)}>
                   ❌
                 </button>
               </td>
             </tr>
           )}
         </tbody>
+        <tfoot>
+          <tr>
+            {columns.map(column =>
+              <td><input id={column} name={column} required/></td>
+            )}
+            <td>
+              <button type='submit'>
+              +
+              </button>
+            </td>
+          </tr>
+        </tfoot>
       </table>
-    </>
+    </form>
   )
 }
