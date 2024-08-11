@@ -1,92 +1,68 @@
-import { useEffect, useState, useCallback, useRef } from 'react'
-import { DBConnect, Connect } from './Connect'
+import { useEffect, useState, useCallback } from 'react'
+import { Connect } from './Connect'
 import { TableList } from './TableList'
-import { websocket, isGetTablesResponse, isConnectResponse, isGetTableResponse, WEBSOCKET_MESSAGE_TYPE, WEBSOCKET_EVENT } from '../state/websocket'
 import { Table } from './Table'
-import { db } from '../state/localStorage'
-import { sha256 } from '../state/crypto'
+import { network, isGetTablesResponse, isGetTableResponse, createGetTablesRequest, isDeleteRecordResponse, isInsertRecordResponse } from '../state/network'
+import { connect$ } from '../state/connect'
+import { selectedTable$ } from '../state/selectedTable'
 
 function App() {
   const [tables, setTables] = useState<Array<string>>([])
   const [tableEntries, setTableEntries] = useState<Array<Record<string, unknown>>>([])
-  const [selectedTable, setSelectedTable] = useState<string>("")
-  const connectInfo = useRef<DBConnect>()
-
-  const onConnect = (data: DBConnect) => {
-    connectInfo.current = data
-  }
 
   useEffect(() => {
-    const cleanup = websocket.subscribe(message => {
-      if (isConnectResponse(message)) {
-
-        const successfulLogin = connectInfo.current
-
-        if (successfulLogin) {
-          const serialised = JSON.stringify(successfulLogin)
-
-          sha256(serialised)
-            .then(hash => {
-              db.set({
-                ...successfulLogin,
-                id: hash
-              })
-                .catch(console.error)
-            })
-            .catch(console.error)
-        }
-
-        websocket.send({
-          type: WEBSOCKET_MESSAGE_TYPE.GET_TABLES,
-          payload: null
-        })
-      }
-
-      if (isGetTablesResponse(message)) {
-        setTables(message.payload)
-      }
-
-      if (isGetTableResponse(message)) {
-        setTableEntries(message.payload)
-      }
-
-      if (message.event === WEBSOCKET_EVENT.CLOSE) {
-        setTableEntries([])
-        setTables([])
-      }
+    const sub = network.in.listen(response => {
+      if (isGetTablesResponse(response)) { setTables(response.body.result) }
+      else if (
+        isGetTableResponse(response) ||
+        isDeleteRecordResponse(response) ||
+        isInsertRecordResponse(response)
+      ) { setTableEntries(response.body.result) }
     })
-    return () => { cleanup() }
+
+    return () => { sub.unsubscribe() }
   }, [])
 
   const onTableBack = useCallback(() => {
     setTableEntries([])
-    websocket.send({
-      type: WEBSOCKET_MESSAGE_TYPE.GET_TABLES,
-      payload: null
-    })
+    selectedTable$.next(null)
+
+    const connectInfo = connect$.getLatestValue()
+    if (!connectInfo) {
+      console.warn("Table - onRefresh: connectInfo not valid.", { connectInfo })
+      return
+    }
+
+    network.out.send(createGetTablesRequest(connectInfo))
   }, [])
 
   const onTableListBack = useCallback(() => {
     setTables([])
-    websocket.close()
+    connect$.next(null)
   }, [])
+
+  // const onSort = useCallback((key: string, sortAscending: boolean) => {
+  //   setTableEntries(prev => prev.toSorted((a, b) => sortAscending
+  //     ? a[key] - b[key]
+  //     : b[key] - a[key]
+  //   ))
+  // }, [])
 
   return (
     <>
       {tableEntries.length !== 0 && tables.length !== 0 && (
         <Table
           onBack={onTableBack}
-          name={selectedTable}
+          onSort={() => { }}
           entries={tableEntries}
         />
       )}
       {tables.length !== 0 && tableEntries.length === 0 && (
         <TableList
           onBack={onTableListBack}
-          onSelect={setSelectedTable}
           tables={tables} />
       )}
-      {tables.length === 0 && tableEntries.length === 0 && <Connect onConnect={onConnect} />}
+      {tables.length === 0 && tableEntries.length === 0 && <Connect />}
     </>
   )
 }

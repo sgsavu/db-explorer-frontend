@@ -1,51 +1,94 @@
-import { WEBSOCKET_MESSAGE_TYPE, websocket } from '../../state/websocket'
+import { connect$ } from '../../state/connect'
+import { createDeleteRecordRequest, createGetTableRequest, createInsertRecordRequest, network } from '../../state/network'
+import { selectedTable$ } from '../../state/selectedTable'
+import { FormEventHandler, useCallback, useState } from 'react'
+import { useObservable } from '../../hooks'
 import './index.css'
-import { FormEventHandler, useCallback } from 'react'
+
+const onAdd: FormEventHandler<HTMLFormElement> = e => {
+  e.preventDefault()
+
+  const formData = new FormData(e.target as HTMLFormElement)
+  const record = Array.from(formData.entries()).map(el => el[1]) as Array<string>
+
+  const connectInfo = connect$.getLatestValue()
+  if (!connectInfo) {
+    console.warn("Table - onRefresh: connectInfo not valid.", { connectInfo })
+    return
+  }
+
+  const selectedTable = selectedTable$.getLatestValue()
+  if (!selectedTable) {
+    console.warn("Table - onRefresh: selectedTable not valid.", { selectedTable })
+    return
+  }
+
+  network.out.send(createInsertRecordRequest(
+    connectInfo,
+    selectedTable.toLowerCase(),
+    record
+  ))
+}
+
+const onDelete = (id: string) => {
+  const connectInfo = connect$.getLatestValue()
+  if (!connectInfo) {
+    console.warn("Table - onRefresh: connectInfo not valid.", { connectInfo })
+    return
+  }
+
+  const selectedTable = selectedTable$.getLatestValue()
+  if (!selectedTable) {
+    console.warn("Table - onRefresh: selectedTable not valid.", { selectedTable })
+    return
+  }
+
+  network.out.send(createDeleteRecordRequest(
+    connectInfo,
+    selectedTable.toLowerCase(),
+    id
+  ))
+}
+
+const onRefresh = () => {
+  const connectInfo = connect$.getLatestValue()
+  if (!connectInfo) {
+    console.warn("Table - onRefresh: connectInfo not valid.", { connectInfo })
+    return
+  }
+
+  const selectedTable = selectedTable$.getLatestValue()
+  if (!selectedTable) {
+    console.warn("Table - onRefresh: selectedTable not valid.", { selectedTable })
+    return
+  }
+
+  network.out.send(createGetTableRequest(
+    connectInfo,
+    selectedTable.toLowerCase()
+  ))
+}
 
 type Props = {
   entries: Array<Record<string, unknown>>
-  name: string
   onBack?: () => void
+  onSort?: (value: string, sortAscending: boolean) => void
 }
 
 export const Table: React.FC<Props> = ({
   entries,
-  name,
-  onBack
+  onBack,
+  onSort
 }) => {
+  const [sortAscending, setSortAscending] = useState(false)
+  const tableName = useObservable(selectedTable$)
+
+  const onLocalSort = useCallback((value: string) => {
+    onSort?.(value, !sortAscending)
+    setSortAscending(prev => !prev)
+  }, [onSort, sortAscending])
 
   const columns = Object.keys(entries[0])
-  const onDelete = useCallback((id: string) => {
-    websocket.send({
-      type: WEBSOCKET_MESSAGE_TYPE.DELETE_RECORD,
-      payload: {
-        table: name.toLowerCase(),
-        id
-      }
-    })
-  }, [name])
-
-  const onRefresh = () => {
-    websocket.send({
-      type: WEBSOCKET_MESSAGE_TYPE.GET_TABLE,
-      payload: name.toLowerCase()
-    })
-  }
-
-  const onAdd = useCallback<FormEventHandler<HTMLFormElement>>(e => {
-    e.preventDefault()
-
-    const formData = new FormData(e.target as HTMLFormElement)
-    const record = Array.from(formData.entries()).map(el => el[1])
-
-    websocket.send({
-      type: WEBSOCKET_MESSAGE_TYPE.INSERT_RECORD,
-      payload: {
-        table: name,
-        record 
-      }
-    })
-  }, [name])
 
   return (
     <form onSubmit={onAdd}>
@@ -54,13 +97,20 @@ export const Table: React.FC<Props> = ({
         <button onClick={onRefresh}>Refresh 🔄</button>
       </div>
       <h1>
-        {name}
+        {tableName}
       </h1>
       <table>
         <thead>
           <tr>
             {columns.map(column =>
-              <th key={column}>{column}</th>
+              <th onClick={() => onLocalSort(column)} key={column}>
+                <div>
+                  {column}
+                </div>
+                <div>
+                  {sortAscending ? "⬆️" : "⬇️"}
+                </div>
+              </th>
             )}
           </tr>
         </thead>
@@ -81,11 +131,11 @@ export const Table: React.FC<Props> = ({
         <tfoot>
           <tr>
             {columns.map(column =>
-              <td><input id={column} name={column} required/></td>
+              <td><input id={column} name={column} required /></td>
             )}
             <td>
               <button type='submit'>
-              +
+                +
               </button>
             </td>
           </tr>

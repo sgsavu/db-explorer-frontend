@@ -1,34 +1,44 @@
-import { WEBSOCKET_MESSAGE_TYPE, websocket } from "../../state/websocket"
+import { connect$ } from "../../state/connect"
+import { createGetTableRequest, createGetTablesRequest, network } from "../../state/network"
+import { selectedTable$ } from "../../state/selectedTable"
+
+const onRefresh = () => {
+  const connectInfo = connect$.getLatestValue()
+  if (!connectInfo) {
+    console.warn("TableList - onClick: connectInfo not valid.", { connectInfo })
+    return
+  }
+
+  network.out.send(createGetTablesRequest(connectInfo))
+}
+
+const onSelect: React.MouseEventHandler<HTMLButtonElement> = e => {
+  const selectedTable = e.currentTarget.textContent
+  if (!selectedTable) {
+    console.warn("TableList - onClick: selectedTable not valid.", { selectedTable })
+    return
+  }
+
+  selectedTable$.next(selectedTable)
+
+  const connectInfo = connect$.getLatestValue()
+  if (!connectInfo) {
+    console.warn("TableList - onClick: connectInfo not valid.", { connectInfo })
+    return
+  }
+
+  network.out.send(createGetTableRequest(connectInfo, selectedTable.toLowerCase()))
+}
 
 type Props = {
   onBack?: () => void
-  onSelect?: (value: string) => void
   tables: string[]
 }
 
 export const TableList: React.FC<Props> = ({
   onBack,
-  onSelect,
   tables
 }) => {
-  const onClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
-    const selectedTable = e.currentTarget.textContent
-    if (!selectedTable) { return }
-
-    onSelect?.(selectedTable)
-    websocket.send({
-      type: WEBSOCKET_MESSAGE_TYPE.GET_TABLE,
-      payload: selectedTable.toLowerCase()
-    })
-  }
-
-  const onRefresh = () => {
-    websocket.send({
-      type: WEBSOCKET_MESSAGE_TYPE.GET_TABLES,
-      payload: null
-    })
-  }
-
   return (
     <>
       <div className='buttonsContainer'>
@@ -38,7 +48,7 @@ export const TableList: React.FC<Props> = ({
       <h1>Tables</h1>
       {tables.map(table =>
         <div key={table}>
-          <button onClick={onClick}>
+          <button onClick={onSelect}>
             {table}
           </button>
         </div>

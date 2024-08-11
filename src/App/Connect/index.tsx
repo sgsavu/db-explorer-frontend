@@ -1,8 +1,9 @@
 import './index.css'
 import { Field } from '../../Components/Field'
-import { useCallback, FormEventHandler, useEffect, useRef, useState } from 'react'
-import { websocket, WEBSOCKET_MESSAGE_TYPE } from '../../state/websocket'
-import { db, StorageDBConnect } from '../../state/localStorage'
+import { FormEventHandler, useEffect, useState } from 'react'
+import { localStorage, StorageDBConnect } from '../../state/localStorage'
+import { createGetTablesRequest, network } from '../../state/network'
+import { connect$ } from '../../state/connect'
 
 export type DBConnect = {
   address: string
@@ -11,18 +12,35 @@ export type DBConnect = {
   password: string
 }
 
-type Props = {
-  onConnect?: (data: DBConnect) => void
+const onRecentLogin = (login: StorageDBConnect) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { id, ...rest } = login
+
+  connect$.next(rest)
+  network.out.send(createGetTablesRequest(rest))
 }
 
-export const Connect: React.FC<Props> = ({ onConnect }) => {
-  const form = useRef<DBConnect>()
+const onSubmit: FormEventHandler<HTMLFormElement> = e => {
+  e.preventDefault()
+
+  const formData = new FormData(e.target as HTMLFormElement)
+  const formEntries = Object.fromEntries(formData.entries()) as DBConnect & { port: string }
+
+  formEntries.address = formEntries.address + ':' + formEntries.port
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { port, ...rest } = formEntries
+
+  connect$.next(rest)
+  network.out.send(createGetTablesRequest(rest))
+}
+
+export const Connect: React.FC = () => {
   const [recentLogins, setRecentLogins] = useState<Array<StorageDBConnect>>([])
 
   useEffect(() => {
-    const cleanup = db.isOpen(isOpen => {
+    const cleanup = localStorage.isOpen(isOpen => {
       if (isOpen) {
-        db.dbGetAll()
+        localStorage.dbGetAll()
           .then(setRecentLogins)
           .catch(console.error)
       }
@@ -30,41 +48,6 @@ export const Connect: React.FC<Props> = ({ onConnect }) => {
 
     return () => { cleanup() }
   }, [])
-
-  useEffect(() => {
-    const cleanup = websocket.subscribe(wsMessage => {
-      if (wsMessage.type === WEBSOCKET_MESSAGE_TYPE.OPEN && form.current) {
-        websocket.send({
-          type: WEBSOCKET_MESSAGE_TYPE.CONNECT,
-          payload: form.current
-        })
-      }
-    })
-    return () => { cleanup() }
-  }, [])
-
-  const onRecentLogin = (login: StorageDBConnect) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, ...rest } = login
-    form.current = rest
-    websocket.init()
-  }
-
-  const onSubmit = useCallback<FormEventHandler<HTMLFormElement>>(e => {
-    e.preventDefault()
-
-    const formData = new FormData(e.target as HTMLFormElement)
-    const formEntries = Object.fromEntries(formData.entries()) as DBConnect & { port: string }
-
-    formEntries.address = formEntries.address + ':' + formEntries.port
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { port, ...rest } = formEntries
-
-    form.current = rest
-    onConnect?.(rest)
-    websocket.init()
-  }, [onConnect])
 
   return (
     <>
@@ -116,16 +99,16 @@ export const Connect: React.FC<Props> = ({ onConnect }) => {
 
       {recentLogins.length !== 0 && <h3>Recent logins</h3>}
       {recentLogins.map(login =>
-          <button
-            key={login.id}
-            onClick={() => onRecentLogin(login)}
-          >
-            <div>
-              {login.id}
-            </div>
-            {login.address} - {login.dbName} - {login.user} - {login.password[0]}{login.password[1]}{'*'.repeat(login.password.length - 2)}
-          </button>
-        )}
+        <button
+          key={login.id}
+          onClick={() => onRecentLogin(login)}
+        >
+          <div>
+            {login.id}
+          </div>
+          {login.address} - {login.dbName} - {login.user} - {login.password[0]}{login.password[1]}{'*'.repeat(login.password.length - 2)}
+        </button>
+      )}
     </>
   )
 }

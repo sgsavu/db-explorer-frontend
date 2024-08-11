@@ -104,4 +104,4 @@ const createIndexedDB = (dbName: string, objectStore: string) => {
     }
 }
 
-export const db = createIndexedDB(INDEXED_DB, OBJECT_STORE)
+export const localStorage = createIndexedDB(INDEXED_DB, OBJECT_STORE)
