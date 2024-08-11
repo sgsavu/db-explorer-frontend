@@ -30,16 +30,5 @@ tbody tr:last-of-type {
 }
 
 .buttonsContainer {
-    display: flex;
-    justify-content: space-between;
-}
-
-.backButton {
-    display: flex;
-    justify-content: left;
-}
-
-.refreshButton {
-    display: flex;
-    justify-content: right;
+    gap: 100px;
 }

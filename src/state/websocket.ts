@@ -1,26 +1,40 @@
-type SubscriberFn = (value: WebSocketResponse) => void
-
-export enum WEBSOCKET_MESSAGE_TYPE {
+export enum WEBSOCKET_EVENT {
     OPEN = 'open',
     CLOSE = 'close',
     MESSAGE = 'message'
 }
 
-export enum PROTOCOL {
+export enum WEBSOCKET_MESSAGE_TYPE {
+    OPEN = 'OPEN',
+    CLOSE = 'CLOSE',
     CONNECT = 'CONNECT',
-    GET_TABLES = 'GET_TABLES',
     GET_TABLE = 'GET_TABLE',
+    GET_TABLES = 'GET_TABLES',
+    INSERT_RECORD = 'INSERT_RECORD',
     DELETE_RECORD = 'DELETE_RECORD'
 }
 
-export type WebSocketMessage<T = unknown> = {
-    protocol: PROTOCOL
-    payload: T
+export enum STATUS_CODE {
+    BAD_REQUEST = 400,
+    OK = 200,
+    NOT_FOUND = 404,
+    SERVER_ERROR = 500
 }
 
-export type WebSocketResponse<T = unknown> = WebSocketMessage<T> & {
+export type WebSocketRequest<T = unknown> = {
+    payload: T
     type: WEBSOCKET_MESSAGE_TYPE
 }
+
+export type WebSocketResponse<T = unknown> = WebSocketRequest<T> & {
+    statusCode: STATUS_CODE
+}
+
+export type WebSocketEvent<T = unknown> = WebSocketResponse<T> & {
+    event: WEBSOCKET_EVENT
+}
+
+type SubscriberFn = (value: WebSocketEvent) => void
 
 type GetTablePayload = Array<Record<string, unknown>>
 
@@ -31,24 +45,27 @@ type ConnectResponsePayload = {
     statusCode: number
 }
 
-export const isConnectResponse = (message: WebSocketResponse): message is WebSocketResponse<ConnectResponsePayload> =>
-    message.type === WEBSOCKET_MESSAGE_TYPE.MESSAGE &&
-    message.protocol === PROTOCOL.CONNECT
+export const isConnectResponse = (message: WebSocketEvent): message is WebSocketEvent<ConnectResponsePayload> =>
+    message.event === WEBSOCKET_EVENT.MESSAGE &&
+    message.type === WEBSOCKET_MESSAGE_TYPE.CONNECT &&
+    message.statusCode === STATUS_CODE.OK
 
-export const isGetTablesResponse = (message: WebSocketResponse): message is WebSocketResponse<GetTablesPayload> =>
-    message.type === WEBSOCKET_MESSAGE_TYPE.MESSAGE &&
-    message.protocol === PROTOCOL.GET_TABLES
+export const isGetTablesResponse = (message: WebSocketEvent): message is WebSocketEvent<GetTablesPayload> =>
+    message.event === WEBSOCKET_EVENT.MESSAGE &&
+    message.type === WEBSOCKET_MESSAGE_TYPE.GET_TABLES &&
+    message.statusCode === STATUS_CODE.OK
 
-export const isGetTableResponse = (message: WebSocketResponse): message is WebSocketResponse<GetTablePayload> =>
-    message.type === WEBSOCKET_MESSAGE_TYPE.MESSAGE &&
-    message.protocol === PROTOCOL.GET_TABLE
+export const isGetTableResponse = (message: WebSocketEvent): message is WebSocketEvent<GetTablePayload> =>
+    message.event === WEBSOCKET_EVENT.MESSAGE &&
+    message.type === WEBSOCKET_MESSAGE_TYPE.GET_TABLE &&
+    message.statusCode === STATUS_CODE.OK
 
 const createWebsocket = (url?: string) => {
     let ws: WebSocket | undefined
     let subscribers: Record<number, SubscriberFn> = {}
     let subIndex = 0
 
-    const notifySubs = (message: WebSocketResponse) => {
+    const notifySubs = (message: WebSocketEvent) => {
         Object.values(subscribers).forEach(subFn => {
             subFn(message)
         })
@@ -56,18 +73,24 @@ const createWebsocket = (url?: string) => {
 
     const openHandler = () => {
         notifySubs({
-            type: WEBSOCKET_MESSAGE_TYPE.OPEN
+            event: WEBSOCKET_EVENT.OPEN,
+            payload: null,
+            type: WEBSOCKET_MESSAGE_TYPE.OPEN,
+            statusCode: STATUS_CODE.OK
         })
     }
 
     const closeHandler = () => {
         notifySubs({
-            type: WEBSOCKET_MESSAGE_TYPE.CLOSE
+            event: WEBSOCKET_EVENT.CLOSE,
+            payload: null,
+            type: WEBSOCKET_MESSAGE_TYPE.CLOSE,
+            statusCode: STATUS_CODE.OK
         })
     }
 
     const messageHandler = (event: MessageEvent) => {
-        let parsed: WebSocketMessage | undefined
+        let parsed: WebSocketResponse | undefined
         try {
             parsed = JSON.parse(event.data)
         } catch (error) {
@@ -76,7 +99,7 @@ const createWebsocket = (url?: string) => {
         if (!parsed) { return }
 
         notifySubs({
-            type: WEBSOCKET_MESSAGE_TYPE.MESSAGE,
+            event: WEBSOCKET_EVENT.MESSAGE,
             ...parsed
         })
     }
@@ -92,7 +115,7 @@ const createWebsocket = (url?: string) => {
         ws.removeEventListener("open", openHandler)
         ws.removeEventListener("close", closeHandler)
         ws.removeEventListener("message", messageHandler)
-        ws.close(1000, 'Bye')
+        ws.close(1000, 'Done')
     }
 
     if (url) { setup(url) }
@@ -102,8 +125,7 @@ const createWebsocket = (url?: string) => {
             if (ws) { teardown(ws) }
             setup(url)
         },
-        send: (message: WebSocketMessage) => {
-            console.warn(message)
+        send: (message: WebSocketRequest) => {
             if (!ws) { return }
             ws.send(JSON.stringify(message))
         },

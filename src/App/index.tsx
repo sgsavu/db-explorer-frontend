@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { DBConnect, Form } from './Form'
+import { DBConnect, Connect } from './Connect'
 import { TableList } from './TableList'
-import { websocket, isGetTablesResponse, PROTOCOL, isConnectResponse, WEBSOCKET_MESSAGE_TYPE, isGetTableResponse } from '../state/websocket'
+import { websocket, isGetTablesResponse, isConnectResponse, isGetTableResponse, WEBSOCKET_MESSAGE_TYPE, WEBSOCKET_EVENT } from '../state/websocket'
 import { Table } from './Table'
 import { db } from '../state/localStorage'
 import { sha256 } from '../state/crypto'
@@ -26,19 +26,18 @@ function App() {
           const serialised = JSON.stringify(successfulLogin)
 
           sha256(serialised)
-          .then(hash => {
-            db.set({
-              ...successfulLogin,
-              id: hash
+            .then(hash => {
+              db.set({
+                ...successfulLogin,
+                id: hash
+              })
+                .catch(console.error)
             })
             .catch(console.error)
-          })
-          .catch(console.error)
-
         }
 
         websocket.send({
-          protocol: PROTOCOL.GET_TABLES,
+          type: WEBSOCKET_MESSAGE_TYPE.GET_TABLES,
           payload: null
         })
       }
@@ -48,11 +47,10 @@ function App() {
       }
 
       if (isGetTableResponse(message)) {
-        console.error('here')
         setTableEntries(message.payload)
       }
 
-      if (message.type === WEBSOCKET_MESSAGE_TYPE.CLOSE) {
+      if (message.event === WEBSOCKET_EVENT.CLOSE) {
         setTableEntries([])
         setTables([])
       }
@@ -63,7 +61,7 @@ function App() {
   const onTableBack = useCallback(() => {
     setTableEntries([])
     websocket.send({
-      protocol: PROTOCOL.GET_TABLES,
+      type: WEBSOCKET_MESSAGE_TYPE.GET_TABLES,
       payload: null
     })
   }, [])
@@ -88,7 +86,7 @@ function App() {
           onSelect={setSelectedTable}
           tables={tables} />
       )}
-      {tables.length === 0 && tableEntries.length === 0 && <Form onConnect={onConnect} />}
+      {tables.length === 0 && tableEntries.length === 0 && <Connect onConnect={onConnect} />}
     </>
   )
 }

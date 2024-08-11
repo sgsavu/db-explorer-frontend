@@ -3,7 +3,7 @@
     Luckily I am one of the best programmers of all time and I have made it easy to use.
 */
 
-import { DBConnect } from "../App/Form"
+import { DBConnect } from "../App/Connect"
 
 const INDEXED_DB = "mysql-visualizer"
 const OBJECT_STORE = "logins"

@@ -1,4 +1,4 @@
-import { PROTOCOL, websocket } from '../../state/websocket'
+import { WEBSOCKET_MESSAGE_TYPE, websocket } from '../../state/websocket'
 import './index.css'
 import { useCallback } from 'react'
 
@@ -17,7 +17,7 @@ export const Table: React.FC<Props> = ({
   const columns = Object.keys(entries[0])
   const onDelete = useCallback((id: string) => {
     websocket.send({
-      protocol: PROTOCOL.DELETE_RECORD,
+      type: WEBSOCKET_MESSAGE_TYPE.DELETE_RECORD,
       payload: {
         table: name.toLowerCase(),
         id
@@ -27,7 +27,7 @@ export const Table: React.FC<Props> = ({
 
   const onRefresh = () => {
     websocket.send({
-      protocol: PROTOCOL.GET_TABLE,
+      type: WEBSOCKET_MESSAGE_TYPE.GET_TABLE,
       payload: name.toLowerCase()
     })
   }
@@ -35,8 +35,8 @@ export const Table: React.FC<Props> = ({
   return (
     <>
       <div className='buttonsContainer'>
-      <button className='backButton' onClick={onBack}>Back ↩️</button>
-      <button className='refreshButton' onClick={onRefresh}>Refresh 🔄</button>
+        <button onClick={onBack}>Back ↩️</button>
+        <button onClick={onRefresh}>Refresh 🔄</button>
       </div>
       <h1>
         {name}
@@ -57,7 +57,7 @@ export const Table: React.FC<Props> = ({
               )}
               <td>
                 <button onClick={() => onDelete(row.ID as string)}>
-                ❌
+                  ❌
                 </button>
               </td>
             </tr>

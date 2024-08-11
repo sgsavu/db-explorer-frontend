@@ -1,4 +1,4 @@
-import { PROTOCOL, websocket } from "../../state/websocket"
+import { WEBSOCKET_MESSAGE_TYPE, websocket } from "../../state/websocket"
 
 type Props = {
   onBack?: () => void
@@ -17,14 +17,24 @@ export const TableList: React.FC<Props> = ({
 
     onSelect?.(selectedTable)
     websocket.send({
-      protocol: PROTOCOL.GET_TABLE,
+      type: WEBSOCKET_MESSAGE_TYPE.GET_TABLE,
       payload: selectedTable.toLowerCase()
+    })
+  }
+
+  const onRefresh = () => {
+    websocket.send({
+      type: WEBSOCKET_MESSAGE_TYPE.GET_TABLES,
+      payload: null
     })
   }
 
   return (
     <>
-      <button onClick={onBack}>Back ↩️</button>
+      <div className='buttonsContainer'>
+        <button onClick={onBack}>Back ↩️</button>
+        <button onClick={onRefresh}>Refresh 🔄</button>
+      </div>
       <h1>Tables</h1>
       {tables.map(table =>
         <div key={table}>

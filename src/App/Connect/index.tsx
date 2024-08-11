@@ -1,10 +1,8 @@
 import './index.css'
 import { Field } from '../../Components/Field'
 import { useCallback, FormEventHandler, useEffect, useRef, useState } from 'react'
-import { PROTOCOL, websocket, WEBSOCKET_MESSAGE_TYPE } from '../../state/websocket'
+import { websocket, WEBSOCKET_MESSAGE_TYPE } from '../../state/websocket'
 import { db, StorageDBConnect } from '../../state/localStorage'
-
-websocket.subscribe(console.error)
 
 export type DBConnect = {
   address: string
@@ -17,7 +15,7 @@ type Props = {
   onConnect?: (data: DBConnect) => void
 }
 
-export const Form: React.FC<Props> = ({ onConnect }) => {
+export const Connect: React.FC<Props> = ({ onConnect }) => {
   const form = useRef<DBConnect>()
   const [recentLogins, setRecentLogins] = useState<Array<StorageDBConnect>>([])
 
@@ -37,7 +35,7 @@ export const Form: React.FC<Props> = ({ onConnect }) => {
     const cleanup = websocket.subscribe(wsMessage => {
       if (wsMessage.type === WEBSOCKET_MESSAGE_TYPE.OPEN && form.current) {
         websocket.send({
-          protocol: PROTOCOL.CONNECT,
+          type: WEBSOCKET_MESSAGE_TYPE.CONNECT,
           payload: form.current
         })
       }
