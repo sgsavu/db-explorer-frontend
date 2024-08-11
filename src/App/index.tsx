@@ -5,6 +5,24 @@ import { Table } from './Table'
 import { network, isGetTablesResponse, isGetTableResponse, createGetTablesRequest, isDeleteRecordResponse, isInsertRecordResponse } from '../state/network'
 import { connect$ } from '../state/connect'
 import { selectedTable$ } from '../state/selectedTable'
+import { localStorage } from '../state/localStorage'
+import { sha256 } from '../state/crypto'
+
+const storeConnect = () => {
+  const connectInfo = connect$.getLatestValue()
+  if (!connectInfo) {
+    console.warn("App - storeConnect: connectInfo not valid.", { connectInfo })
+    return
+  }
+
+  const serialised = JSON.stringify(connectInfo)
+
+  try {
+    sha256(serialised).then(hash => { localStorage.set({ ...connectInfo, id: hash }) })
+  } catch (error) {
+    console.error("App - storeConnect: saving connectInfo to storage failed.", { serialised, connectInfo })
+  }
+}
 
 function App() {
   const [tables, setTables] = useState<Array<string>>([])
@@ -12,7 +30,10 @@ function App() {
 
   useEffect(() => {
     const sub = network.in.listen(response => {
-      if (isGetTablesResponse(response)) { setTables(response.body.result) }
+      if (isGetTablesResponse(response)) {
+        setTables(response.body.result)
+        storeConnect()
+      }
       else if (
         isGetTableResponse(response) ||
         isDeleteRecordResponse(response) ||
@@ -29,7 +50,7 @@ function App() {
 
     const connectInfo = connect$.getLatestValue()
     if (!connectInfo) {
-      console.warn("Table - onRefresh: connectInfo not valid.", { connectInfo })
+      console.warn("App - onTableBack: connectInfo not valid.", { connectInfo })
       return
     }
 
