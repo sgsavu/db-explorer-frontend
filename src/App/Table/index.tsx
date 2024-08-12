@@ -173,64 +173,70 @@ export const Table: React.FC<Props> = ({
         <tbody>
           {entries.map((row, rowIndex) =>
             <tr key={row.ID + rowIndex}>
-              {Object.values(row).map((cell, columnIndex) =>
-                <td
-                  key={cell + columnIndex}
-                >
-                  {editable?.row === rowIndex &&
-                    editable?.column === columnIndex
-                    ? (
-                      <Input
-                        clickOnRender
-                        defaultValue={cell}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault()
-                            e.currentTarget.blur()
-                          } else if (e.key === 'Escape') {
+              {Object.values(row).map((cell, columnIndex) => {
+                const isEditable = editable?.column === columnIndex && editable.row === rowIndex
+                return (
+                  <td
+                    className={isEditable ? "inputCell" : "hoverableCell"}
+                    onClick={() => {
+                      if (isEditable) { return }
+                      setEditable({ row: rowIndex, column: columnIndex })
+                    }}
+                    key={cell + columnIndex}
+                  >
+                    {editable?.row === rowIndex &&
+                      editable?.column === columnIndex
+                      ? (
+                        <Input
+                          clickOnRender
+                          defaultValue={cell}
+                          onBlur={e => {
                             setEditable(null)
-                          }
-                        }}
-                        onBlur={e => {
-                          setEditable(null)
 
-                          const newValue = e.target.value
-                          if (newValue === cell) { return }
+                            const newValue = e.target.value
+                            if (newValue === cell) { return }
 
-                          const connectInfo = connect$.getLatestValue()
-                          if (!connectInfo) {
-                            console.warn("Table - onCellInputBlur: connectInfo not valid.", { connectInfo })
-                            return
-                          }
+                            const connectInfo = connect$.getLatestValue()
+                            if (!connectInfo) {
+                              console.warn("Table - onCellInputBlur: connectInfo not valid.", { connectInfo })
+                              return
+                            }
 
-                          const selectedTable = selectedTable$.getLatestValue()
-                          if (!selectedTable) {
-                            console.warn("Table - onRefresh: selectedTable not valid.", { selectedTable })
-                            return
-                          }
+                            const selectedTable = selectedTable$.getLatestValue()
+                            if (!selectedTable) {
+                              console.warn("Table - onRefresh: selectedTable not valid.", { selectedTable })
+                              return
+                            }
 
-                          network.out.send(createEditRecordRequest(
-                            connectInfo,
-                            selectedTable,
-                            columns[columnIndex],
-                            newValue,
-                            row.ID
-                          ))
-                        }}
-                        required
-                        type="text"
-                      />
-                    )
-                    : (
-                      <div
-                        className='tableCellValue'
-                        onClick={() => setEditable({ row: rowIndex, column: columnIndex })}
-                      >
-                        {cell}
-                      </div>
-                    )
-                  }
-                </td>
+                            network.out.send(createEditRecordRequest(
+                              connectInfo,
+                              selectedTable,
+                              columns[columnIndex],
+                              newValue,
+                              row.ID
+                            ))
+                          }}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              e.currentTarget.blur()
+                            } else if (e.key === 'Escape') {
+                              setEditable(null)
+                            }
+                          }}
+                          required
+                          type="text"
+                        />
+                      )
+                      : (
+                        <div>
+                          {cell}
+                        </div>
+                      )
+                    }
+                  </td>
+                )
+              }
               )}
               <td>
                 <button type='button' onClick={() => onDelete(row.ID)}>

@@ -43,8 +43,14 @@ tbody tr:last-of-type {
     gap: 100px;
 }
 
-td {
-    > div {
-        cursor: pointer; 
-    }
+.inputCell {
+    pointer-events: none;
+}
+
+.hoverableCell {
+    cursor: pointer;
+}
+
+.hoverableCell:hover {
+    background-color: rgb(86, 85, 86);
 }
