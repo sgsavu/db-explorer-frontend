@@ -13,6 +13,9 @@ import { isDeleteRecordResponse } from '../state/network/messages/deleteRecord'
 import { isInsertRecordResponse } from '../state/network/messages/insertRecord'
 import { SORT_MODE } from './Table/consts'
 import { isEditRecordResponse } from '../state/network/messages/editRecord'
+import { isDuplicateTableResponse } from '../state/network/messages/duplicateTable'
+import { isDeleteTableResponse } from '../state/network/messages/deleteTable'
+import { isRenameTableResponse } from '../state/network/messages/renameTable'
 
 const storeConnect = () => {
   const connectInfo = connect$.getLatestValue()
@@ -66,9 +69,14 @@ function App() {
 
   useEffect(() => {
     const sub = network.in.listen(response => {
-      if (isGetTablesResponse(response)) {
+      if (
+        isGetTablesResponse(response) ||
+        isDuplicateTableResponse(response) ||
+        isDeleteTableResponse(response) ||
+        isRenameTableResponse(response)
+      ) {
         setTables(response.body.result)
-        storeConnect()
+        storeConnect() // TODO: move this elsewhere
       }
       else if (
         isGetTableResponse(response) ||

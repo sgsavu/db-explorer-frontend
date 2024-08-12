@@ -12,6 +12,7 @@ import { createEditRecordRequest } from '../../state/network/messages/editRecord
 import { generateShortId } from '../../utils'
 import { primaryKeys$ } from '../../state/primaryKeys'
 import './index.css'
+import { createRenameTableRequest } from '../../state/network/messages/renameTable'
 
 const onDuplicate = (row: Record<string, string>) => {
   const connectInfo = connect$.getLatestValue()
@@ -31,8 +32,8 @@ const onDuplicate = (row: Record<string, string>) => {
     console.warn("Table - onDuplicate: primaryKeys not valid.", { selectedTable })
     return
   }
-  const copyRow = {...row}
-  
+  const copyRow = { ...row }
+
   primaryKeys.forEach(primaryKey => {
     copyRow[primaryKey] = generateShortId()
   })
@@ -54,13 +55,13 @@ const onAdd: FormEventHandler<HTMLFormElement> = e => {
 
   const connectInfo = connect$.getLatestValue()
   if (!connectInfo) {
-    console.warn("Table - onRefresh: connectInfo not valid.", { connectInfo })
+    console.warn("Table - onAdd: connectInfo not valid.", { connectInfo })
     return
   }
 
   const selectedTable = selectedTable$.getLatestValue()
   if (!selectedTable) {
-    console.warn("Table - onRefresh: selectedTable not valid.", { selectedTable })
+    console.warn("Table - onAdd: selectedTable not valid.", { selectedTable })
     return
   }
 
@@ -74,13 +75,13 @@ const onAdd: FormEventHandler<HTMLFormElement> = e => {
 const onDelete = (row: Record<string, string>) => {
   const connectInfo = connect$.getLatestValue()
   if (!connectInfo) {
-    console.warn("Table - onRefresh: connectInfo not valid.", { connectInfo })
+    console.warn("Table - onDelete: connectInfo not valid.", { connectInfo })
     return
   }
 
   const selectedTable = selectedTable$.getLatestValue()
   if (!selectedTable) {
-    console.warn("Table - onRefresh: selectedTable not valid.", { selectedTable })
+    console.warn("Table - onDelete: selectedTable not valid.", { selectedTable })
     return
   }
 
@@ -110,6 +111,60 @@ const onRefresh = () => {
   ))
 }
 
+const onEditRecord = (column: string, value: string) => {
+  const connectInfo = connect$.getLatestValue()
+  if (!connectInfo) {
+    console.warn("Table - onEditRecord: connectInfo not valid.", { connectInfo })
+    return
+  }
+
+  const selectedTable = selectedTable$.getLatestValue()
+  if (!selectedTable) {
+    console.warn("Table - onEditRecord: selectedTable not valid.", { selectedTable })
+    return
+  }
+
+  const primaryKeys = primaryKeys$.getLatestValue()
+  if (!primaryKeys) {
+    console.warn("Table - onEditRecord: primaryKeys not valid.", { selectedTable })
+    return
+  } 
+
+  network.out.send(createEditRecordRequest(
+    connectInfo,
+    selectedTable,
+    column,
+    value,
+    primaryKeys[0]
+  ))
+}
+
+const onRenameTable = (newName: string) => {
+  const connectInfo = connect$.getLatestValue()
+  if (!connectInfo) {
+    console.warn("Table - onRenameTable: connectInfo not valid.", { connectInfo })
+    return
+  }
+
+  const selectedTable = selectedTable$.getLatestValue()
+  if (!selectedTable) {
+    console.warn("Table - onRenameTable: selectedTable not valid.", { selectedTable })
+    return
+  }
+
+  const primaryKeys = primaryKeys$.getLatestValue()
+  if (!primaryKeys) {
+    console.warn("Table - onRenameTable: primaryKeys not valid.", { selectedTable })
+    return
+  } 
+
+  network.out.send(createRenameTableRequest(
+    connectInfo,
+    selectedTable,
+    newName.trim().split(' ').join('-')
+  ))
+}
+
 type Props = {
   entries: Array<Record<string, string>>
   onBack?: () => void
@@ -131,7 +186,7 @@ export const Table: React.FC<Props> = ({
   const [sortMode, setSortMode] = useState<SORT_MODE>()
   const [showSearch, setShowSearch] = useState(false)
   const [filters, setFilters] = useState<Record<string, string>>({})
-  const tableName = useObservable(selectedTable$)
+  const tableName = useObservable(selectedTable$) ?? ''
 
   const onLocalSort = useCallback((column: string) => {
     setSortColumn(column)
@@ -168,14 +223,42 @@ export const Table: React.FC<Props> = ({
     )
     , [records, filters, columns])
 
+  const [editingTableName, setEditingTableName] = useState(false)
+
   return (
     <form onSubmit={onAdd}>
       <div className='buttonsContainer'>
         <button type='button' onClick={onBack}>Back ↩️</button>
         <button type='button' onClick={onRefresh}>Refresh 🔄</button>
       </div>
-      <h1>
-        {tableName}
+      <h1
+        tabIndex={0}
+      >
+        {editingTableName
+          ? (
+            <Input
+              clickOnRender
+              defaultValue={tableName}
+              onBlur={e => {
+                setEditingTableName(false)
+
+                const newTableName = e.target.value
+                if (newTableName === tableName) { return }
+
+                onRenameTable(newTableName)
+              }}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  e.currentTarget.blur()
+                } else if (e.key === 'Escape') {
+                  setEditingTableName(false)
+                }
+              }}
+            />
+          )
+          : <div onClick={() => setEditingTableName(true)} style={{ cursor: 'pointer' }}>{tableName}</div>
+        }
       </h1>
       <table>
         <thead>
@@ -250,25 +333,7 @@ export const Table: React.FC<Props> = ({
                             const newValue = e.target.value
                             if (newValue === cell) { return }
 
-                            const connectInfo = connect$.getLatestValue()
-                            if (!connectInfo) {
-                              console.warn("Table - onCellInputBlur: connectInfo not valid.", { connectInfo })
-                              return
-                            }
-
-                            const selectedTable = selectedTable$.getLatestValue()
-                            if (!selectedTable) {
-                              console.warn("Table - onRefresh: selectedTable not valid.", { selectedTable })
-                              return
-                            }
-
-                            network.out.send(createEditRecordRequest(
-                              connectInfo,
-                              selectedTable,
-                              columns[columnIndex],
-                              newValue,
-                              row.ID
-                            ))
+                            onEditRecord(columns[columnIndex], newValue)
                           }}
                           onKeyDown={e => {
                             if (e.key === 'Enter') {
