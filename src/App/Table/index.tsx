@@ -231,10 +231,11 @@ export const Table: React.FC<Props> = ({
                 return (
                   <td
                     className={isEditable ? "inputCell" : "hoverableCell"}
-                    onClick={() => {
+                    onFocus={() => {
                       if (isEditable) { return }
                       setEditable({ row: rowIndex, column: columnIndex })
                     }}
+                    tabIndex={0}
                     key={cell + columnIndex}
                   >
                     {editable?.row === rowIndex &&
