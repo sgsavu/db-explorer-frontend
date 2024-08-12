@@ -292,13 +292,13 @@ export const Table: React.FC<Props> = ({
                 )
               }
               )}
-              <td className='hoverableCell' onClick={() => onDelete(row)}>
-                ❌
-              </td>
               <td className='hoverableCell' onClick={() => onDuplicate(row)}>
                 <div className='duplicateButton'>
                   ⎘
                 </div>
+              </td>
+              <td className='hoverableCell' onClick={() => onDelete(row)}>
+                ❌
               </td>
             </tr>
           )}
