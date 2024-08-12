@@ -10,6 +10,7 @@ import './index.css'
 import { DEFAULT_SORT_MODE, SORT_MODE } from './consts'
 import { Input } from '../../Components/Input'
 import { isGetTableRejection } from '../../state/network/messages/getTable'
+import { createEditRecordRequest, isEditRecordRejection, isEditRecordRequest } from '../../state/network/messages/editRecord'
 
 const onAdd: FormEventHandler<HTMLFormElement> = e => {
   e.preventDefault()
@@ -121,7 +122,8 @@ export const Table: React.FC<Props> = ({
       if (
         isGetTableRejection(resp) ||
         isInsertRecordRejection(resp) ||
-        isDeleteRecordRejection(resp)
+        isDeleteRecordRejection(resp) ||
+        isEditRecordRejection(resp)
       ) { setError(resp.body.error) }
     })
 
@@ -129,7 +131,8 @@ export const Table: React.FC<Props> = ({
       if (
         isGetTableRequest(request) ||
         isInsertRecordRequest(request) ||
-        isDeleteRecordRequest(request)
+        isDeleteRecordRequest(request) ||
+        isEditRecordRequest(request)
       ) { setError(null) }
     })
 
@@ -171,30 +174,63 @@ export const Table: React.FC<Props> = ({
           {entries.map((row, rowIndex) =>
             <tr key={row.ID + rowIndex}>
               {Object.values(row).map((cell, columnIndex) =>
-              <td
-              key={cell + columnIndex}
-            >
-              {editable?.row === rowIndex &&
-                editable?.column === columnIndex
-                ? (
-                  <Input
-                    clickOnRender
-                    defaultValue={cell}
-                    onBlur={() => setEditable(null)}
-                    required
-                    type="text"
-                  />
-                )
-                : (
-                  <div
-                    className='tableCellValue'
-                    onClick={() => setEditable({ row: rowIndex, column: columnIndex })}
-                  >
-                    {cell}
-                  </div>
-                )
-              }
-            </td>
+                <td
+                  key={cell + columnIndex}
+                >
+                  {editable?.row === rowIndex &&
+                    editable?.column === columnIndex
+                    ? (
+                      <Input
+                        clickOnRender
+                        defaultValue={cell}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            e.currentTarget.blur()
+                          } else if (e.key === 'Escape') {
+                            setEditable(null)
+                          }
+                        }}
+                        onBlur={e => {
+                          setEditable(null)
+
+                          const newValue = e.target.value
+                          if (newValue === cell) { return }
+
+                          const connectInfo = connect$.getLatestValue()
+                          if (!connectInfo) {
+                            console.warn("Table - onCellInputBlur: connectInfo not valid.", { connectInfo })
+                            return
+                          }
+
+                          const selectedTable = selectedTable$.getLatestValue()
+                          if (!selectedTable) {
+                            console.warn("Table - onRefresh: selectedTable not valid.", { selectedTable })
+                            return
+                          }
+
+                          network.out.send(createEditRecordRequest(
+                            connectInfo,
+                            selectedTable,
+                            columns[columnIndex],
+                            newValue,
+                            row.ID
+                          ))
+                        }}
+                        required
+                        type="text"
+                      />
+                    )
+                    : (
+                      <div
+                        className='tableCellValue'
+                        onClick={() => setEditable({ row: rowIndex, column: columnIndex })}
+                      >
+                        {cell}
+                      </div>
+                    )
+                  }
+                </td>
               )}
               <td>
                 <button type='button' onClick={() => onDelete(row.ID)}>

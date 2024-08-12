@@ -12,6 +12,7 @@ import { isGetTableResponse } from '../state/network/messages/getTable'
 import { isDeleteRecordResponse } from '../state/network/messages/deleteRecord'
 import { isInsertRecordResponse } from '../state/network/messages/insertRecord'
 import { SORT_MODE } from './Table/consts'
+import { isEditRecordResponse } from '../state/network/messages/editRecord'
 
 const storeConnect = () => {
   const connectInfo = connect$.getLatestValue()
@@ -72,7 +73,8 @@ function App() {
       else if (
         isGetTableResponse(response) ||
         isDeleteRecordResponse(response) ||
-        isInsertRecordResponse(response)
+        isInsertRecordResponse(response) || 
+        isEditRecordResponse(response)
       ) { setTableEntries(response.body.result) }
     })
 
