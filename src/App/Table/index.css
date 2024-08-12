@@ -42,3 +42,9 @@ tbody tr:last-of-type {
 .buttonsContainer {
     gap: 100px;
 }
+
+td {
+    > div {
+        cursor: pointer; 
+    }
+}

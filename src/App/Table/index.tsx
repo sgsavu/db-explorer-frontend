@@ -4,10 +4,12 @@ import { FormEventHandler, useCallback, useEffect, useState } from 'react'
 import { useObservable } from '../../hooks'
 import { network } from '../../state/network/network'
 import { createDeleteRecordRequest, isDeleteRecordRejection, isDeleteRecordRequest } from '../../state/network/messages/deleteRecord'
-import { createGetTableRequest } from '../../state/network/messages/getTable'
+import { createGetTableRequest, isGetTableRequest } from '../../state/network/messages/getTable'
 import { createInsertRecordRequest, isInsertRecordRejection, isInsertRecordRequest } from '../../state/network/messages/insertRecord'
 import './index.css'
 import { DEFAULT_SORT_MODE, SORT_MODE } from './consts'
+import { Input } from '../../Components/Input'
+import { isGetTableRejection } from '../../state/network/messages/getTable'
 
 const onAdd: FormEventHandler<HTMLFormElement> = e => {
   e.preventDefault()
@@ -74,9 +76,14 @@ const onRefresh = () => {
 }
 
 type Props = {
-  entries: Array<Record<string, unknown>>
+  entries: Array<Record<string, string>>
   onBack?: () => void
   onSort?: (key: string, sortMode: SORT_MODE) => void
+}
+
+type Coord = {
+  row: number
+  column: number
 }
 
 export const Table: React.FC<Props> = ({
@@ -84,6 +91,7 @@ export const Table: React.FC<Props> = ({
   onBack,
   onSort
 }) => {
+  const [editable, setEditable] = useState<Coord | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [sortColumn, setSortColumn] = useState<string>()
   const [sortMode, setSortMode] = useState<SORT_MODE>()
@@ -99,9 +107,9 @@ export const Table: React.FC<Props> = ({
     }
 
     const oppositeSortMode = sortMode === SORT_MODE.DESCENDING
-    ? SORT_MODE.ASCENDING
-    : SORT_MODE.DESCENDING
-  
+      ? SORT_MODE.ASCENDING
+      : SORT_MODE.DESCENDING
+
     onSort?.(column, oppositeSortMode)
     setSortMode(oppositeSortMode)
   }, [onSort, sortMode, sortColumn])
@@ -111,6 +119,7 @@ export const Table: React.FC<Props> = ({
   useEffect(() => {
     const inSub = network.in.listen(resp => {
       if (
+        isGetTableRejection(resp) ||
         isInsertRecordRejection(resp) ||
         isDeleteRecordRejection(resp)
       ) { setError(resp.body.error) }
@@ -118,6 +127,7 @@ export const Table: React.FC<Props> = ({
 
     const outSub = network.out.listen(request => {
       if (
+        isGetTableRequest(request) ||
         isInsertRecordRequest(request) ||
         isDeleteRecordRequest(request)
       ) { setError(null) }
@@ -158,13 +168,36 @@ export const Table: React.FC<Props> = ({
           </tr>
         </thead>
         <tbody>
-          {entries.map(row =>
-            <tr key={row.ID as string}>
-              {Object.values(row).map(cell =>
-                <td key={cell as string}>{cell as string}</td>
+          {entries.map((row, rowIndex) =>
+            <tr key={row.ID + rowIndex}>
+              {Object.values(row).map((cell, columnIndex) =>
+              <td
+              key={cell + columnIndex}
+            >
+              {editable?.row === rowIndex &&
+                editable?.column === columnIndex
+                ? (
+                  <Input
+                    clickOnRender
+                    defaultValue={cell}
+                    onBlur={() => setEditable(null)}
+                    required
+                    type="text"
+                  />
+                )
+                : (
+                  <div
+                    className='tableCellValue'
+                    onClick={() => setEditable({ row: rowIndex, column: columnIndex })}
+                  >
+                    {cell}
+                  </div>
+                )
+              }
+            </td>
               )}
               <td>
-                <button type='button' onClick={() => onDelete(row.ID as string)}>
+                <button type='button' onClick={() => onDelete(row.ID)}>
                   ❌
                 </button>
               </td>
