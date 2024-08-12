@@ -2,11 +2,16 @@ import { useEffect, useState, useCallback } from 'react'
 import { Connect } from './Connect'
 import { TableList } from './TableList'
 import { Table } from './Table'
-import { network, isGetTablesResponse, isGetTableResponse, createGetTablesRequest, isDeleteRecordResponse, isInsertRecordResponse } from '../state/network'
 import { connect$ } from '../state/connect'
 import { selectedTable$ } from '../state/selectedTable'
 import { localStorage } from '../state/localStorage'
 import { sha256 } from '../state/crypto'
+import { network } from '../state/network/network'
+import { createGetTablesRequest, isGetTablesResponse } from '../state/network/messages/getTables'
+import { isGetTableResponse } from '../state/network/messages/getTable'
+import { isDeleteRecordResponse } from '../state/network/messages/deleteRecord'
+import { isInsertRecordResponse } from '../state/network/messages/insertRecord'
+import { SORT_MODE } from './Table/consts'
 
 const storeConnect = () => {
   const connectInfo = connect$.getLatestValue()
@@ -24,9 +29,39 @@ const storeConnect = () => {
   }
 }
 
+const sortTableEntries = (
+  tableEntries: Array<Record<string, string>>,
+  sortKey: string,
+  sortMode: SORT_MODE
+) => {
+  // TODO: remove when eslint updates
+  const typedEntries = tableEntries as typeof tableEntries & { toSorted: (fn: (a: typeof tableEntries[0], b: typeof tableEntries[0]) => number) => typeof tableEntries }
+
+  const sorted = typedEntries.toSorted((a, b) => {
+    const numberA = Number(a[sortKey])
+    const numberB = Number(b[sortKey])
+
+    if (isFinite(numberA) && isFinite(numberB)) {
+      return numberA - numberB
+    }
+
+    if (a[sortKey] < b[sortKey]) {
+      return -1
+    }
+    if (a[sortKey] > b[sortKey]) {
+      return 1
+    }
+    return 0
+  })
+
+  const typedSorted = sorted as typeof sorted & { toReversed: () => typeof typedEntries } // TODO: remove when eslint updates
+
+  return sortMode === SORT_MODE.DESCENDING ? typedSorted.toReversed() : sorted
+}
+
 function App() {
   const [tables, setTables] = useState<Array<string>>([])
-  const [tableEntries, setTableEntries] = useState<Array<Record<string, unknown>>>([])
+  const [tableEntries, setTableEntries] = useState<Array<Record<string, string>>>([])
 
   useEffect(() => {
     const sub = network.in.listen(response => {
@@ -62,19 +97,16 @@ function App() {
     connect$.next(null)
   }, [])
 
-  // const onSort = useCallback((key: string, sortAscending: boolean) => {
-  //   setTableEntries(prev => prev.toSorted((a, b) => sortAscending
-  //     ? a[key] - b[key]
-  //     : b[key] - a[key]
-  //   ))
-  // }, [])
+  const onSort = useCallback((key: string, sortMode: SORT_MODE) => {
+    setTableEntries(prev => sortTableEntries(prev, key, sortMode))
+  }, [])
 
   return (
     <>
       {tableEntries.length !== 0 && tables.length !== 0 && (
         <Table
           onBack={onTableBack}
-          onSort={() => { }}
+          onSort={onSort}
           entries={tableEntries}
         />
       )}

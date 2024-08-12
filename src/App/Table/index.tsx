@@ -1,9 +1,13 @@
 import { connect$ } from '../../state/connect'
-import { createDeleteRecordRequest, createGetTableRequest, createInsertRecordRequest, network } from '../../state/network'
 import { selectedTable$ } from '../../state/selectedTable'
-import { FormEventHandler, useCallback, useState } from 'react'
+import { FormEventHandler, useCallback, useEffect, useState } from 'react'
 import { useObservable } from '../../hooks'
+import { network } from '../../state/network/network'
+import { createDeleteRecordRequest, isDeleteRecordRejection, isDeleteRecordRequest } from '../../state/network/messages/deleteRecord'
+import { createGetTableRequest } from '../../state/network/messages/getTable'
+import { createInsertRecordRequest, isInsertRecordRejection, isInsertRecordRequest } from '../../state/network/messages/insertRecord'
 import './index.css'
+import { DEFAULT_SORT_MODE, SORT_MODE } from './consts'
 
 const onAdd: FormEventHandler<HTMLFormElement> = e => {
   e.preventDefault()
@@ -72,7 +76,7 @@ const onRefresh = () => {
 type Props = {
   entries: Array<Record<string, unknown>>
   onBack?: () => void
-  onSort?: (value: string, sortAscending: boolean) => void
+  onSort?: (key: string, sortMode: SORT_MODE) => void
 }
 
 export const Table: React.FC<Props> = ({
@@ -80,21 +84,56 @@ export const Table: React.FC<Props> = ({
   onBack,
   onSort
 }) => {
-  const [sortAscending, setSortAscending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [sortColumn, setSortColumn] = useState<string>()
+  const [sortMode, setSortMode] = useState<SORT_MODE>()
   const tableName = useObservable(selectedTable$)
 
-  const onLocalSort = useCallback((value: string) => {
-    onSort?.(value, !sortAscending)
-    setSortAscending(prev => !prev)
-  }, [onSort, sortAscending])
+  const onLocalSort = useCallback((column: string) => {
+    setSortColumn(column)
+
+    if (!sortMode || sortColumn !== column) {
+      setSortMode(DEFAULT_SORT_MODE)
+      onSort?.(column, DEFAULT_SORT_MODE)
+      return
+    }
+
+    const oppositeSortMode = sortMode === SORT_MODE.DESCENDING
+    ? SORT_MODE.ASCENDING
+    : SORT_MODE.DESCENDING
+  
+    onSort?.(column, oppositeSortMode)
+    setSortMode(oppositeSortMode)
+  }, [onSort, sortMode, sortColumn])
 
   const columns = Object.keys(entries[0])
+
+  useEffect(() => {
+    const inSub = network.in.listen(resp => {
+      if (
+        isInsertRecordRejection(resp) ||
+        isDeleteRecordRejection(resp)
+      ) { setError(resp.body.error) }
+    })
+
+    const outSub = network.out.listen(request => {
+      if (
+        isInsertRecordRequest(request) ||
+        isDeleteRecordRequest(request)
+      ) { setError(null) }
+    })
+
+    return () => {
+      inSub.unsubscribe()
+      outSub.unsubscribe()
+    }
+  }, [])
 
   return (
     <form onSubmit={onAdd}>
       <div className='buttonsContainer'>
-        <button onClick={onBack}>Back ↩️</button>
-        <button onClick={onRefresh}>Refresh 🔄</button>
+        <button type='button' onClick={onBack}>Back ↩️</button>
+        <button type='button' onClick={onRefresh}>Refresh 🔄</button>
       </div>
       <h1>
         {tableName}
@@ -104,11 +143,15 @@ export const Table: React.FC<Props> = ({
           <tr>
             {columns.map(column =>
               <th onClick={() => onLocalSort(column)} key={column}>
-                <div>
-                  {column}
-                </div>
-                <div>
-                  {sortAscending ? "⬆️" : "⬇️"}
+                <div className='tableHeaderContent'>
+                  <div>
+                    {column}
+                  </div>
+                  {sortMode && sortColumn === column &&
+                    (<div>
+                      {sortMode === SORT_MODE.ASCENDING ? "⬆️" : "⬇️"}
+                    </div>)
+                  }
                 </div>
               </th>
             )}
@@ -141,6 +184,9 @@ export const Table: React.FC<Props> = ({
           </tr>
         </tfoot>
       </table>
+      <div>
+        {error}
+      </div>
     </form>
   )
 }

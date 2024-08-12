@@ -36,30 +36,6 @@ export type WebSocketEvent<T = unknown> = WebSocketResponse<T> & {
 
 type SubscriberFn = (value: WebSocketEvent) => void
 
-type GetTablePayload = Array<Record<string, unknown>>
-
-type GetTablesPayload = Array<string>
-
-type ConnectResponsePayload = {
-    message: string
-    statusCode: number
-}
-
-export const isConnectResponse = (message: WebSocketEvent): message is WebSocketEvent<ConnectResponsePayload> =>
-    message.event === WEBSOCKET_EVENT.MESSAGE &&
-    message.type === WEBSOCKET_MESSAGE_TYPE.CONNECT &&
-    message.statusCode === STATUS_CODE.OK
-
-export const isGetTablesResponse = (message: WebSocketEvent): message is WebSocketEvent<GetTablesPayload> =>
-    message.event === WEBSOCKET_EVENT.MESSAGE &&
-    message.type === WEBSOCKET_MESSAGE_TYPE.GET_TABLES &&
-    message.statusCode === STATUS_CODE.OK
-
-export const isGetTableResponse = (message: WebSocketEvent): message is WebSocketEvent<GetTablePayload> =>
-    message.event === WEBSOCKET_EVENT.MESSAGE &&
-    message.type === WEBSOCKET_MESSAGE_TYPE.GET_TABLE &&
-    message.statusCode === STATUS_CODE.OK
-
 const createWebsocket = (url?: string) => {
     let ws: WebSocket | undefined
     let subscribers: Record<number, SubscriberFn> = {}

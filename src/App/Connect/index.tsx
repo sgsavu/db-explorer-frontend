@@ -2,8 +2,9 @@ import './index.css'
 import { Field } from '../../Components/Field'
 import { FormEventHandler, useEffect, useState } from 'react'
 import { localStorage, StorageDBConnect } from '../../state/localStorage'
-import { createGetTablesRequest, isGetTablesRejection, isGetTablesRequest, network } from '../../state/network'
 import { connect$ } from '../../state/connect'
+import { createGetTablesRequest, isGetTablesRejection, isGetTablesRequest } from '../../state/network/messages/getTables'
+import { network } from '../../state/network/network'
 
 export type DBConnect = {
   address: string
@@ -39,6 +40,18 @@ export const Connect: React.FC = () => {
   const [recentLogins, setRecentLogins] = useState<Array<StorageDBConnect>>([])
 
   useEffect(() => {
+    const inSub = network.in.listen(resp => {
+      if (isGetTablesRejection(resp)) {
+        setError(resp.body.error)
+      }
+    })
+
+    const outSub = network.out.listen(request => {
+      if (isGetTablesRequest(request)) {
+        setError(null)
+      }
+    })
+
     const cleanup = localStorage.isOpen(isOpen => {
       if (isOpen) {
         localStorage.dbGetAll()
@@ -47,25 +60,11 @@ export const Connect: React.FC = () => {
       }
     })
 
-    return () => { cleanup() }
-  }, [])
-
-  useEffect(() => {
-    const sub = network.in.listen(resp => {
-      if (isGetTablesRejection(resp)) {
-        setError(resp.body.error)
-      }
-    })
-    return () => { sub.unsubscribe() }
-  }, [])
-
-  useEffect(() => {
-    const sub = network.out.listen(request => {
-      if (isGetTablesRequest(request)) {
-        setError(null)
-      }
-    })
-    return () => { sub.unsubscribe() }
+    return () => { 
+      inSub.unsubscribe()
+      outSub.unsubscribe()
+      cleanup()
+    }
   }, [])
 
   return (

@@ -1,5 +1,7 @@
 import { connect$ } from "../../state/connect"
-import { createGetTableRequest, createGetTablesRequest, network } from "../../state/network"
+import { createGetTableRequest } from "../../state/network/messages/getTable"
+import { createGetTablesRequest } from "../../state/network/messages/getTables"
+import { network } from "../../state/network/network"
 import { selectedTable$ } from "../../state/selectedTable"
 
 const onRefresh = () => {
