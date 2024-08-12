@@ -1,6 +1,6 @@
 import { connect$ } from '../../state/connect'
 import { selectedTable$ } from '../../state/selectedTable'
-import { FormEventHandler, useCallback, useEffect, useState } from 'react'
+import { FormEventHandler, useMemo, useCallback, useEffect, useState } from 'react'
 import { useObservable } from '../../hooks'
 import { network } from '../../state/network/network'
 import { createDeleteRecordRequest, isDeleteRecordRejection, isDeleteRecordRequest } from '../../state/network/messages/deleteRecord'
@@ -88,7 +88,7 @@ type Coord = {
 }
 
 export const Table: React.FC<Props> = ({
-  entries,
+  entries: records,
   onBack,
   onSort
 }) => {
@@ -96,6 +96,8 @@ export const Table: React.FC<Props> = ({
   const [error, setError] = useState<string | null>(null)
   const [sortColumn, setSortColumn] = useState<string>()
   const [sortMode, setSortMode] = useState<SORT_MODE>()
+  const [showSearch, setShowSearch] = useState(false)
+  const [filters, setFilters] = useState<Record<string, string>>({})
   const tableName = useObservable(selectedTable$)
 
   const onLocalSort = useCallback((column: string) => {
@@ -115,7 +117,7 @@ export const Table: React.FC<Props> = ({
     setSortMode(oppositeSortMode)
   }, [onSort, sortMode, sortColumn])
 
-  const columns = Object.keys(entries[0])
+  const columns = Object.keys(records[0])
 
   useEffect(() => {
     const inSub = network.in.listen(resp => {
@@ -142,6 +144,25 @@ export const Table: React.FC<Props> = ({
     }
   }, [])
 
+  const filtered = useMemo(() => {
+      return records.filter(record => {
+
+        return Object.values(record).every((value, columnIndex) => {
+
+          const columnName = columns[columnIndex]
+          const filter = filters[columnName]
+  
+          if (!filter) { return true }
+
+          const dynamicRegex = new RegExp(filter, "i");
+
+          return value.match(dynamicRegex)
+        })
+
+      })
+
+  }, [records, filters, columns])
+
   return (
     <form onSubmit={onAdd}>
       <div className='buttonsContainer'>
@@ -156,22 +177,49 @@ export const Table: React.FC<Props> = ({
           <tr>
             {columns.map(column =>
               <th onClick={() => onLocalSort(column)} key={column}>
-                <div className='tableHeaderContent'>
-                  <div>
-                    {column}
-                  </div>
-                  {sortMode && sortColumn === column &&
-                    (<div>
+                <div>
+                  {column}
+                  {sortMode && sortColumn === column && (
+                    <div>
                       {sortMode === SORT_MODE.ASCENDING ? "⬆️" : "⬇️"}
-                    </div>)
-                  }
+                    </div>
+                  )}
                 </div>
               </th>
             )}
+            <th onClick={(e) => {
+              e.stopPropagation()
+              e.preventDefault()
+
+              setShowSearch(!showSearch)
+            }}>
+              🔎
+            </th>
           </tr>
         </thead>
+        {showSearch && (
+          <tr>
+            {columns.map(column =>
+              <td>
+                <input
+                  id={column}
+                  onInput={e => {
+                    const target = e.target as unknown as { value: string }
+                    setFilters(prev => ({...prev, [column]: target.value}))
+                  }}
+                  name={column}
+                  required 
+                  value={filters[column] ?? ""}
+                  />
+              </td>
+            )}
+            <td className='hoverableCell' onClick={() => { setFilters({})} }>
+              Reset
+            </td>
+          </tr>
+        )}
         <tbody>
-          {entries.map((row, rowIndex) =>
+          {filtered.map((row, rowIndex) =>
             <tr key={row.ID + rowIndex}>
               {Object.values(row).map((cell, columnIndex) => {
                 const isEditable = editable?.column === columnIndex && editable.row === rowIndex
@@ -238,10 +286,8 @@ export const Table: React.FC<Props> = ({
                 )
               }
               )}
-              <td>
-                <button type='button' onClick={() => onDelete(row.ID)}>
-                  ❌
-                </button>
+              <td className='hoverableCell' onClick={() => onDelete(row.ID)}>
+                ❌
               </td>
             </tr>
           )}
