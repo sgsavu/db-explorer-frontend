@@ -53,10 +53,17 @@ network.in.listen(resp => {
             console.warn("bindings: oldTableList not valid.", { oldTableList })
             return
         }
+
+        const selectedTable = selectedTable$.getLatestValue()
+        if (!selectedTable) {
+            console.warn("bindings: selectedTable not valid.", { selectedTable })
+            return
+        }
+
         const newTableList = resp.body.result
 
         const diff = findArrayDiff(oldTableList, newTableList)
-        const newSelectedTable = diff[1]
+        const newSelectedTable = diff[0] === selectedTable ? diff[1] : diff[0]
 
         selectedTable$.next(newSelectedTable)
     }
