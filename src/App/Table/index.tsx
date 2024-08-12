@@ -1,16 +1,50 @@
 import { connect$ } from '../../state/connect'
 import { selectedTable$ } from '../../state/selectedTable'
-import { FormEventHandler, useMemo, useCallback, useEffect, useState } from 'react'
+import { FormEventHandler, useMemo, useCallback, useState } from 'react'
 import { useObservable } from '../../hooks'
 import { network } from '../../state/network/network'
-import { createDeleteRecordRequest, isDeleteRecordRejection, isDeleteRecordRequest } from '../../state/network/messages/deleteRecord'
-import { createGetTableRequest, isGetTableRequest } from '../../state/network/messages/getTable'
-import { createInsertRecordRequest, isInsertRecordRejection, isInsertRecordRequest } from '../../state/network/messages/insertRecord'
-import './index.css'
+import { createDeleteRecordRequest } from '../../state/network/messages/deleteRecord'
+import { createGetTableRequest } from '../../state/network/messages/getTable'
+import { createInsertRecordRequest } from '../../state/network/messages/insertRecord'
 import { DEFAULT_SORT_MODE, SORT_MODE } from './consts'
 import { Input } from '../../Components/Input'
-import { isGetTableRejection } from '../../state/network/messages/getTable'
-import { createEditRecordRequest, isEditRecordRejection, isEditRecordRequest } from '../../state/network/messages/editRecord'
+import { createEditRecordRequest } from '../../state/network/messages/editRecord'
+import { generateShortId } from '../../utils'
+import { primaryKeys$ } from '../../state/primaryKeys'
+import './index.css'
+
+const onDuplicate = (row: Record<string, string>) => {
+  const connectInfo = connect$.getLatestValue()
+  if (!connectInfo) {
+    console.warn("Table - onDuplicate: connectInfo not valid.", { connectInfo })
+    return
+  }
+
+  const selectedTable = selectedTable$.getLatestValue()
+  if (!selectedTable) {
+    console.warn("Table - onDuplicate: selectedTable not valid.", { selectedTable })
+    return
+  }
+
+  const primaryKeys = primaryKeys$.getLatestValue()
+  if (!primaryKeys) {
+    console.warn("Table - onDuplicate: primaryKeys not valid.", { selectedTable })
+    return
+  }
+  const copyRow = {...row}
+  
+  primaryKeys.forEach(primaryKey => {
+    copyRow[primaryKey] = generateShortId()
+  })
+
+  const record = Object.values(copyRow)
+
+  network.out.send(createInsertRecordRequest(
+    connectInfo,
+    selectedTable.toLowerCase(),
+    record
+  ))
+}
 
 const onAdd: FormEventHandler<HTMLFormElement> = e => {
   e.preventDefault()
@@ -37,7 +71,7 @@ const onAdd: FormEventHandler<HTMLFormElement> = e => {
   ))
 }
 
-const onDelete = (id: string) => {
+const onDelete = (row: Record<string, string>) => {
   const connectInfo = connect$.getLatestValue()
   if (!connectInfo) {
     console.warn("Table - onRefresh: connectInfo not valid.", { connectInfo })
@@ -53,7 +87,7 @@ const onDelete = (id: string) => {
   network.out.send(createDeleteRecordRequest(
     connectInfo,
     selectedTable.toLowerCase(),
-    id
+    Object.values(row)
   ))
 }
 
@@ -93,7 +127,6 @@ export const Table: React.FC<Props> = ({
   onSort
 }) => {
   const [editable, setEditable] = useState<Coord | null>(null)
-  const [error, setError] = useState<string | null>(null)
   const [sortColumn, setSortColumn] = useState<string>()
   const [sortMode, setSortMode] = useState<SORT_MODE>()
   const [showSearch, setShowSearch] = useState(false)
@@ -119,49 +152,21 @@ export const Table: React.FC<Props> = ({
 
   const columns = Object.keys(records[0])
 
-  useEffect(() => {
-    const inSub = network.in.listen(resp => {
-      if (
-        isGetTableRejection(resp) ||
-        isInsertRecordRejection(resp) ||
-        isDeleteRecordRejection(resp) ||
-        isEditRecordRejection(resp)
-      ) { setError(resp.body.error) }
-    })
+  const filtered = useMemo(() =>
+    records.filter(record =>
+      Object.values(record).every((value, columnIndex) => {
 
-    const outSub = network.out.listen(request => {
-      if (
-        isGetTableRequest(request) ||
-        isInsertRecordRequest(request) ||
-        isDeleteRecordRequest(request) ||
-        isEditRecordRequest(request)
-      ) { setError(null) }
-    })
+        const columnName = columns[columnIndex]
+        const filter = filters[columnName]
 
-    return () => {
-      inSub.unsubscribe()
-      outSub.unsubscribe()
-    }
-  }, [])
+        if (!filter) { return true }
 
-  const filtered = useMemo(() => {
-      return records.filter(record => {
+        const dynamicRegex = new RegExp(filter, "i");
 
-        return Object.values(record).every((value, columnIndex) => {
-
-          const columnName = columns[columnIndex]
-          const filter = filters[columnName]
-  
-          if (!filter) { return true }
-
-          const dynamicRegex = new RegExp(filter, "i");
-
-          return value.match(dynamicRegex)
-        })
-
+        return value.match(dynamicRegex)
       })
-
-  }, [records, filters, columns])
+    )
+    , [records, filters, columns])
 
   return (
     <form onSubmit={onAdd}>
@@ -205,15 +210,15 @@ export const Table: React.FC<Props> = ({
                   id={column}
                   onInput={e => {
                     const target = e.target as unknown as { value: string }
-                    setFilters(prev => ({...prev, [column]: target.value}))
+                    setFilters(prev => ({ ...prev, [column]: target.value }))
                   }}
                   name={column}
-                  required 
+                  required
                   value={filters[column] ?? ""}
-                  />
+                />
               </td>
             )}
-            <td className='hoverableCell' onClick={() => { setFilters({})} }>
+            <td className='hoverableCell' onClick={() => { setFilters({}) }}>
               Reset
             </td>
           </tr>
@@ -286,8 +291,13 @@ export const Table: React.FC<Props> = ({
                 )
               }
               )}
-              <td className='hoverableCell' onClick={() => onDelete(row.ID)}>
+              <td className='hoverableCell' onClick={() => onDelete(row)}>
                 ❌
+              </td>
+              <td className='hoverableCell' onClick={() => onDuplicate(row)}>
+                <div className='duplicateButton'>
+                  ⎘
+                </div>
               </td>
             </tr>
           )}
@@ -305,9 +315,6 @@ export const Table: React.FC<Props> = ({
           </tr>
         </tfoot>
       </table>
-      <div>
-        {error}
-      </div>
     </form>
   )
 }

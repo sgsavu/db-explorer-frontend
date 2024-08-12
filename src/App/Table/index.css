@@ -59,3 +59,9 @@ tfoot tr:first-of-type {
 .hoverableCell:hover {
     background-color: rgb(86, 85, 86);
 }
+
+.duplicateButton {
+    color: white;
+    font-weight: 900;
+    font-size: 30px;
+}
