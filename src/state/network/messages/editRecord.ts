@@ -16,14 +16,24 @@ export const isEditRecordRejection = (response: Response): response is Response<
     response.alias === MESSAGE_ALIAS.EDIT_RECORD &&
     response.statusCode !== STATUS_CODE.OK
 
-export const createEditRecordRequest = (connect: DBConnect, tableName: string, field: string, value: string, recordId: string): Request => {
+export const createEditRecordRequest = (connect: DBConnect, tableName: string, field: string, value: string, primaryKey: string, recordId: string): Request => {
     return {
         alias: MESSAGE_ALIAS.EDIT_RECORD,
         config: {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ connect, value }),
+            body: JSON.stringify({ 
+                connect, 
+                update: {
+                    column: field,
+                    value
+                },
+                recordInfo: {
+                    column: primaryKey,
+                    value: recordId
+                }
+            }),
         },
-        url: "http://127.0.0.1:3000/v1/tables/" + tableName + "/records/" + recordId + "/" + field + "/"
+        url: "http://127.0.0.1:3000/v1/tables/" + tableName + "/records/"
     }
 }

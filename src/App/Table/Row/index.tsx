@@ -1,25 +1,26 @@
-import { deleteRecord, duplicateRecord } from "../utils"
+import { deleteRecord, duplicateRecord, editRecord } from "../utils"
 import { EditableCell } from "./EditableCell"
 import tableStyles from "../index.module.css"
 import styles from "./index.module.css"
 
 type Props = {
     row: Record<string, string>
-    index: number
 }
 
-export const Row: React.FC<Props> = ({
-    row,
-    index
-}) => {
+export const Row: React.FC<Props> = ({ row }) => {
     const columns = Object.keys(row)
     const values = Object.values(row)
 
+    const onEdit = (newValue: string, columnIndex: number) => {
+        editRecord(row, columns[columnIndex], newValue)
+    }
+
     return (
-        <tr key={`row-${index}`}>
+        <tr>
             {values.map((value, columnIndex) =>
                 <EditableCell
-                    columnField={columns[columnIndex]}
+                    onEdit={newValue => onEdit(newValue, columnIndex)}
+                    key={columnIndex}
                     value={value}
                 />
             )}

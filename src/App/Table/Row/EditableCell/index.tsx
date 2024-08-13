@@ -1,18 +1,14 @@
 import { useState } from "react"
 import { Input } from "../../../../Components/Input"
-import { editRecord } from "../../utils"
 import tableStyles from "../../index.module.css"
 import styles from "./index.module.css"
 
 type Props = {
-    columnField: string
+    onEdit?: (newValue: string) => void
     value: string
 }
 
-export const EditableCell: React.FC<Props> = ({
-    columnField,
-    value
-}) => {
+export const EditableCell: React.FC<Props> = ({ onEdit, value }) => {
     const [isEditing, setIsEditing] = useState(false)
 
     const onInputBlur: React.FocusEventHandler<HTMLInputElement> = e => {
@@ -21,7 +17,7 @@ export const EditableCell: React.FC<Props> = ({
         const newValue = e.target.value
         if (newValue === value) { return }
 
-        editRecord(columnField, newValue)
+        onEdit?.(newValue)
     }
 
     const onInputKeyDown: React.KeyboardEventHandler<HTMLInputElement> = e => {
@@ -41,7 +37,6 @@ export const EditableCell: React.FC<Props> = ({
     return (
         <td
             className={isEditing ? styles.inputCell : tableStyles.hoverableCell}
-            key={value}
             onFocus={() => { setIsEditing(true) }}
             tabIndex={0}
         >

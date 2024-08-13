@@ -130,13 +130,13 @@ export const Table: React.FC<Props> = ({
                 )}
                 <tbody>
                     {filtered.map((row, index) =>
-                        <Row row={row} index={index}/>
+                        <Row key={index} row={row} />
                     )}
                 </tbody>
                 <tfoot>
                     <tr>
-                        {columns.map(column =>
-                            <td>
+                        {columns.map((column, index) =>
+                            <td key={index}>
                                 <input id={column} name={column} required />
                             </td>
                         )}

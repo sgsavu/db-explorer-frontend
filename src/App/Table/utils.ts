@@ -93,7 +93,7 @@ export const refreshTable = () => {
     fetchTable(selectedTable)
 }
 
-export const editRecord = (columnName: string, columnValue: string) => {
+export const editRecord = (row: Record<string, string>, columnName: string, columnValue: string) => {
     const connectInfo = connectionInfo$.getLatestValue()
     if (!connectInfo) {
         console.warn("editRecord: connectInfo not valid.", { connectInfo })
@@ -110,14 +110,18 @@ export const editRecord = (columnName: string, columnValue: string) => {
     if (!primaryKeys) {
         console.warn("editRecord: primaryKeys not valid.", { primaryKeys })
         return
-    } 
+    }
+
+    const mainPrimaryKey = primaryKeys[0]
+    const recordId = row[mainPrimaryKey]
 
     network.out.send(createEditRecordRequest(
         connectInfo,
         selectedTable,
         columnName,
         columnValue,
-        primaryKeys[0]
+        mainPrimaryKey,
+        recordId
     ))
 }
 
