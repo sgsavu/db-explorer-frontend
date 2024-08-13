@@ -22,7 +22,7 @@ export const createRenameTableRequest = (connect: DBConnect, oldTableName: strin
         config: {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ connect, newTableName}),
+            body: JSON.stringify({ connect, newTableName }),
         },
         url: "http://127.0.0.1:3000/v1/tables/" + oldTableName + "/"
     }

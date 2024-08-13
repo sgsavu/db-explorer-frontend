@@ -74,17 +74,17 @@ function App() {
         const sub = network.in.listen(response => {
             if (
                 isGetTablesResponse(response) ||
-        isDuplicateTableResponse(response) ||
-        isDeleteTableResponse(response) ||
-        isRenameTableResponse(response)
+                isDuplicateTableResponse(response) ||
+                isDeleteTableResponse(response) ||
+                isRenameTableResponse(response)
             ) {
                 setTables(response.body.result)
                 storeConnectionInfo() // TODO: move this elsewhere
             } else if (
                 isGetTableResponse(response) ||
-        isDeleteRecordResponse(response) ||
-        isInsertRecordResponse(response) || 
-        isEditRecordResponse(response)
+                isDeleteRecordResponse(response) ||
+                isInsertRecordResponse(response) || 
+                isEditRecordResponse(response)
             ) {
                 setTableEntries(response.body.result) 
             }
