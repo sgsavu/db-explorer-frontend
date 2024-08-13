@@ -20,8 +20,8 @@ export const createGetTableRequest = (connect: DBConnect, tableName: string): Re
     return {
         alias: MESSAGE_ALIAS.GET_TABLE,
         config: {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ connect }),
         },
         url: "http://127.0.0.1:3000/v1/tables/" + tableName + "/records/"

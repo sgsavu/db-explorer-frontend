@@ -1,4 +1,4 @@
-import { connect$ } from "./state/connect"
+import { connectionInfo$ } from "./state/connectionInfo"
 import { isDeleteRecordRejection } from "./state/network/messages/deleteRecord"
 import { isDeleteTableRejection } from "./state/network/messages/deleteTable"
 import { isDuplicateTableRejection } from "./state/network/messages/duplicateTable"
@@ -21,14 +21,14 @@ network.in.listen(resp => {
         isDeleteRecordRejection(resp) ||
         isEditRecordRejection(resp) ||
         isGetTablesRejection(resp) ||
-        isGetPrimaryKeysRejection(resp) || 
+        isGetPrimaryKeysRejection(resp) ||
         isDuplicateTableRejection(resp) ||
-        isDeleteTableRejection(resp) || 
+        isDeleteTableRejection(resp) ||
         isRenameTableRejection(resp)
     ) { window.alert(resp.body.error) }
 
     if (isGetTableResponse(resp)) {
-        const connectInfo = connect$.getLatestValue()
+        const connectInfo = connectionInfo$.getLatestValue()
         if (!connectInfo) {
             console.warn("bindings: connectInfo not valid.", { connectInfo })
             return

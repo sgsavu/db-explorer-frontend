@@ -1,3 +1,4 @@
+import { handleError } from "../../utils"
 import { Request, Response } from "./consts"
 
 type InSubFn = (response: Response) => void
@@ -21,25 +22,23 @@ export const createNetwork = () => {
             send: (request: Request) => {
                 notifySubs(outSubs, request)
 
-                try {
-                    fetch(request.url, request.config)
-                        .then(response =>
-                            response.json()
-                                .then(body => {
-                                    notifySubs(
-                                        inSubs,
-                                        {
-                                            alias: request.alias,
-                                            body,
-                                            statusCode: response.status,
-                                            url: request.url,
-                                        }
-                                    )
-                                })
-                        )
-                } catch (error) {
-                    console.error('Error when fetching:', error)
-                }
+                fetch(request.url, request.config)
+                    .then(response =>
+                        response.json()
+                            .then(body => {
+                                notifySubs(
+                                    inSubs,
+                                    {
+                                        alias: request.alias,
+                                        body,
+                                        statusCode: response.status,
+                                        url: request.url,
+                                    }
+                                )
+                            })
+                            .catch(handleError)
+                    )
+                    .catch(handleError)
             },
             listen: (fn: OutSubFn) => {
                 const idx = outSubIndex

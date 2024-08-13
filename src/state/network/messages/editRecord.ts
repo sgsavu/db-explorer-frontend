@@ -20,10 +20,10 @@ export const createEditRecordRequest = (connect: DBConnect, tableName: string, f
     return {
         alias: MESSAGE_ALIAS.EDIT_RECORD,
         config: {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ connect, value }),
         },
-        url: "http://127.0.0.1:3000/v1/tables/" + tableName + "/records/" + recordId + "/" + field + '/'
+        url: "http://127.0.0.1:3000/v1/tables/" + tableName + "/records/" + recordId + "/" + field + "/"
     }
 }

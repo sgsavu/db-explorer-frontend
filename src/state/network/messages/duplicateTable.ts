@@ -20,8 +20,8 @@ export const createDuplicateTableRequest = (connect: DBConnect, sourceTableName:
     return {
         alias: MESSAGE_ALIAS.DUPLICATE_TABLE,
         config: {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ connect, sourceTableName, newTableName}),
         },
         url: "http://127.0.0.1:3000/v1/tables/"

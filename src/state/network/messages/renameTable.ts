@@ -20,8 +20,8 @@ export const createRenameTableRequest = (connect: DBConnect, oldTableName: strin
     return {
         alias: MESSAGE_ALIAS.EDIT_TABLE_NAME,
         config: {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ connect, newTableName}),
         },
         url: "http://127.0.0.1:3000/v1/tables/" + oldTableName + "/"

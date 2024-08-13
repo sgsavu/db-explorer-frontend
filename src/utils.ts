@@ -9,3 +9,8 @@ export const findArrayDiff = <T>(arr1: T[], arr2: T[]): T[] => {
 
     return [...diff1, ...diff2];
 }
+
+export const handleError = (error: Error) => {
+    window.alert(error.message)
+    console.error(error.stack)
+} 

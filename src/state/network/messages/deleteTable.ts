@@ -20,8 +20,8 @@ export const createDeleteTableRequest = (connect: DBConnect, tableName: string):
     return {
         alias: MESSAGE_ALIAS.DELETE_TABLE,
         config: {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ connect}),
         },
         url: "http://127.0.0.1:3000/v1/tables/" + tableName + "/"

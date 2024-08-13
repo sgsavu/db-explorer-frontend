@@ -65,7 +65,7 @@ const createIndexedDB = (dbName: string, objectStore: string) => {
                 request.onsuccess = () => { resolve(request.result) }
                 request.onerror = () => { reject(request.error) }
             }),
-        get: (id: StorageDBConnect['id']) =>
+        get: (id: StorageDBConnect["id"]) =>
             new Promise<DBConnect>((resolve, reject) => {
                 if (!db) { reject("Unable to get from indexedDB."); return }
 
@@ -89,7 +89,7 @@ const createIndexedDB = (dbName: string, objectStore: string) => {
                 request.onsuccess = () => { resolve(request.result) }
                 request.onerror = () => { reject(request.error) }
             }),
-        dbRemove: (id: StorageDBConnect['id']) =>
+        dbRemove: (id: StorageDBConnect["id"]) =>
             new Promise<undefined>((resolve, reject) => {
                 if (!db) { reject("Unable to remove from indexedDB."); return }
 
