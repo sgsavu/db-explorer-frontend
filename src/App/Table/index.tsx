@@ -1,4 +1,6 @@
 import { useMemo, useCallback, useState, useRef, FormEvent } from "react"
+import { useObservable } from "../../hooks"
+import { primaryKeys$ } from "../../state/primaryKeys"
 import { DEFAULT_SORT_MODE, SORT_MODE } from "./consts"
 import { insertRecord, refreshTable } from "./utils"
 import { Title } from "./Title"
@@ -29,6 +31,8 @@ export const Table: React.FC<Props> = ({
     const [filters, setFilters] = useState<Record<string, string>>({})
 
     const formRef = useRef<HTMLFormElement>(null)
+
+    const primaryKeys = useObservable(primaryKeys$) ?? []
 
     const columns = Object.keys(records[0])
 
@@ -97,7 +101,7 @@ export const Table: React.FC<Props> = ({
                         {columns.map(column =>
                             <th onClick={() => onLocalSort(column)} key={column}>
                                 <div>
-                                    {column}
+                                    {column} {primaryKeys.includes(column) ? "*" : ""}
                                     {sortMode && sortColumn === column && (
                                         <div>
                                             {sortMode === SORT_MODE.ASCENDING ? "⬆️" : "⬇️"}

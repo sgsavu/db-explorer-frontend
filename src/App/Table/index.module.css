@@ -22,7 +22,7 @@ th:hover {
 th {
     cursor: pointer;
 
-    >div {
+    > div {
         display: flex;
         justify-content: space-between;
         flex-direction: row;
