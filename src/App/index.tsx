@@ -9,12 +9,12 @@ import { createGetTablesRequest, isGetTablesResponse } from "../state/network/me
 import { isGetTableResponse } from "../state/network/messages/getTable"
 import { isDeleteRecordResponse } from "../state/network/messages/deleteRecord"
 import { isInsertRecordResponse } from "../state/network/messages/insertRecord"
-import { SORT_MODE } from "./Table/consts"
 import { isEditRecordResponse } from "../state/network/messages/editRecord"
 import { isDuplicateTableResponse } from "../state/network/messages/duplicateTable"
 import { isDeleteTableResponse } from "../state/network/messages/deleteTable"
 import { isRenameTableResponse } from "../state/network/messages/renameTable"
 import { fetchTable, fetchTableList, sortTableEntries, storeConnectionInfo } from "./utils"
+import { SORT_MODE } from "../Components/Views/Table/RecordTable/consts"
 
 const onRefresh = () => {
     const selectedTable = selectedTable$.getLatestValue()
@@ -90,8 +90,8 @@ function App() {
             {tables.length !== 0 && tableEntries.length === 0 && <TableList tables={tables} />}
             {tableEntries.length !== 0 && (
                 <Table
-                    onSort={onSort}
-                    entries={tableEntries}
+                    onTableSort={onSort}
+                    tableRecords={tableEntries}
                 />
             )}
         </>

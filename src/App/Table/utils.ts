@@ -7,7 +7,28 @@ import { createEditRecordRequest } from "../../state/network/messages/editRecord
 import { generateShortId } from "../../utils"
 import { primaryKeys$ } from "../../state/primaryKeys"
 import { createRenameTableRequest } from "../../state/network/messages/renameTable"
-import { fetchTable } from "../utils"
+
+export const insertRecord = (record: Record<string, string>) => {
+    const connectInfo = connectionInfo$.getLatestValue()
+    if (!connectInfo) {
+        console.warn("insertRecord: connectInfo not valid.", { connectInfo })
+        return
+    }
+
+    const selectedTable = selectedTable$.getLatestValue()
+    if (!selectedTable) {
+        console.warn("insertRecord: selectedTable not valid.", { selectedTable })
+        return
+    }
+
+    const recordValues = Object.values(record)
+
+    network.out.send(createInsertRecordRequest(
+        connectInfo,
+        selectedTable.toLowerCase(),
+        recordValues
+    ))
+}
 
 export const duplicateRecord = (record: Record<string, string>) => {
     const connectInfo = connectionInfo$.getLatestValue()
@@ -41,26 +62,6 @@ export const duplicateRecord = (record: Record<string, string>) => {
     ))
 }
 
-export const insertRecord = (recordValues: Array<string>) => {
-    const connectInfo = connectionInfo$.getLatestValue()
-    if (!connectInfo) {
-        console.warn("insertRecord: connectInfo not valid.", { connectInfo })
-        return
-    }
-
-    const selectedTable = selectedTable$.getLatestValue()
-    if (!selectedTable) {
-        console.warn("insertRecord: selectedTable not valid.", { selectedTable })
-        return
-    }
-
-    network.out.send(createInsertRecordRequest(
-        connectInfo,
-        selectedTable.toLowerCase(),
-        recordValues
-    ))
-}
-
 export const deleteRecord = (record: Record<string, string>) => {
     const connectInfo = connectionInfo$.getLatestValue()
     if (!connectInfo) {
@@ -81,16 +82,6 @@ export const deleteRecord = (record: Record<string, string>) => {
         selectedTable.toLowerCase(),
         recordValues
     ))
-}
-
-export const refreshTable = () => {
-    const selectedTable = selectedTable$.getLatestValue()
-    if (!selectedTable) {
-        console.warn("refreshTable: selectedTable not valid.", { selectedTable })
-        return
-    }
-
-    fetchTable(selectedTable)
 }
 
 export const editRecord = (row: Record<string, string>, columnName: string, columnValue: string) => {

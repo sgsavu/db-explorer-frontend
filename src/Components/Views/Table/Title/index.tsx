@@ -1,23 +1,22 @@
 import { useState } from "react"
-import { Input } from "../../../../Components/Input"
-import tableStyles from "../../index.module.css"
 import styles from "./index.module.css"
+import { Input } from "../../../Input"
 
-type Props = {
-    onEdit?: (newValue: string) => void
-    value: string
+export type TitleProps = {
+    onChange: (value: string) => void
+    tableName: string
 }
 
-export const EditableCell: React.FC<Props> = ({ onEdit, value }) => {
+export const Title: React.FC<TitleProps> = ({ onChange, tableName }) => {
     const [isEditing, setIsEditing] = useState(false)
 
     const onInputBlur: React.FocusEventHandler<HTMLInputElement> = e => {
         setIsEditing(false)
 
-        const newValue = e.target.value
-        if (newValue === value) { return }
+        const newTableName = e.target.value
+        if (newTableName === tableName) { return }
 
-        onEdit?.(newValue)
+        onChange(newTableName)
     }
 
     const onInputKeyDown: React.KeyboardEventHandler<HTMLInputElement> = e => {
@@ -35,16 +34,12 @@ export const EditableCell: React.FC<Props> = ({ onEdit, value }) => {
     }
 
     return (
-        <td
-            className={isEditing ? styles.inputCell : tableStyles.hoverableCell}
-            onFocus={() => { setIsEditing(true) }}
-            tabIndex={0}
-        >
+        <h1>
             {isEditing
                 ? (
                     <Input
                         clickOnRender
-                        defaultValue={value}
+                        defaultValue={tableName}
                         onBlur={onInputBlur}
                         onKeyDown={onInputKeyDown}
                         required
@@ -52,11 +47,11 @@ export const EditableCell: React.FC<Props> = ({ onEdit, value }) => {
                     />
                 )
                 : (
-                    <div>
-                        {value}
+                    <div className={styles.value} onClick={() => setIsEditing(true)}>
+                        {tableName}
                     </div>
                 )
             }
-        </td>
+        </h1>
     )
 }

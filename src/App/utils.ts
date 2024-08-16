@@ -1,3 +1,4 @@
+import { SORT_MODE } from "../Components/Views/Table/RecordTable/consts"
 import { connectionInfo$ } from "../state/connectionInfo"
 import { sha256 } from "../state/crypto"
 import { localStorage } from "../state/localStorage"
@@ -5,7 +6,6 @@ import { createGetTableRequest } from "../state/network/messages/getTable"
 import { createGetTablesRequest } from "../state/network/messages/getTables"
 import { network } from "../state/network/network"
 import { handleError } from "../utils"
-import { SORT_MODE } from "./Table/consts"
 
 export const fetchTableList = () => {
     const connectInfo = connectionInfo$.getLatestValue()
