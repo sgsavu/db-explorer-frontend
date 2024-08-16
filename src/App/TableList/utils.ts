@@ -1,21 +1,10 @@
 import { connectionInfo$ } from "../../state/connectionInfo"
 import { createDeleteTableRequest } from "../../state/network/messages/deleteTable"
 import { createDuplicateTableRequest } from "../../state/network/messages/duplicateTable"
-import { createGetTablesRequest } from "../../state/network/messages/getTables"
 import { network } from "../../state/network/network"
 import { selectedTable$ } from "../../state/selectedTable"
 import { generateShortId } from "../../utils"
 import { fetchTable } from "../utils"
-
-export const fetchTableList = () => {
-    const connectInfo = connectionInfo$.getLatestValue()
-    if (!connectInfo) {
-        console.warn("fetchTableList: connectInfo not valid.", { connectInfo })
-        return
-    }
-
-    network.out.send(createGetTablesRequest(connectInfo))
-}
 
 export const selectTable = (tableName: string) => {
     selectedTable$.next(tableName)

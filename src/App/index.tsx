@@ -4,8 +4,6 @@ import { TableList } from "./TableList"
 import { Table } from "./Table"
 import { connectionInfo$ } from "../state/connectionInfo"
 import { selectedTable$ } from "../state/selectedTable"
-import { localStorage } from "../state/localStorage"
-import { sha256 } from "../state/crypto"
 import { network } from "../state/network/network"
 import { createGetTablesRequest, isGetTablesResponse } from "../state/network/messages/getTables"
 import { isGetTableResponse } from "../state/network/messages/getTable"
@@ -16,54 +14,15 @@ import { isEditRecordResponse } from "../state/network/messages/editRecord"
 import { isDuplicateTableResponse } from "../state/network/messages/duplicateTable"
 import { isDeleteTableResponse } from "../state/network/messages/deleteTable"
 import { isRenameTableResponse } from "../state/network/messages/renameTable"
-import { handleError } from "../utils"
+import { fetchTable, fetchTableList, sortTableEntries, storeConnectionInfo } from "./utils"
 
-const storeConnectionInfo = () => {
-    const connectionInfo = connectionInfo$.getLatestValue()
-    if (!connectionInfo) {
-        console.warn("storeConnect: connectInfo not valid.", { connectionInfo })
+const onRefresh = () => {
+    const selectedTable = selectedTable$.getLatestValue()
+    if (!selectedTable) {
+        fetchTableList()
         return
     }
-
-    const serialised = JSON.stringify(connectionInfo)
-
-    sha256(serialised)
-        .then(hash => { 
-            localStorage
-                .set({ ...connectionInfo, id: hash })
-                .catch(handleError)
-        })
-        .catch(handleError)
-}
-
-const sortTableEntries = (
-    tableEntries: Array<Record<string, string>>,
-    sortKey: string,
-    sortMode: SORT_MODE
-) => {
-    // TODO: remove when eslint updates
-    const typedEntries = tableEntries as typeof tableEntries & { toSorted: (fn: (a: typeof tableEntries[0], b: typeof tableEntries[0]) => number) => typeof tableEntries }
-
-    const sorted = typedEntries.toSorted((a, b) => {
-        const numberA = Number(a[sortKey])
-        const numberB = Number(b[sortKey])
-
-        if (isFinite(numberA) && isFinite(numberB)) {
-            return numberA - numberB
-        }
-
-        if (a[sortKey] < b[sortKey]) {
-            return -1
-        }
-        if (a[sortKey] > b[sortKey]) {
-            return 1
-        }
-        return 0
-    })
-
-    const typedSorted = sorted as typeof sorted & { toReversed: () => typeof typedEntries } // TODO: remove when eslint updates
-
-    return sortMode === SORT_MODE.DESCENDING ? typedSorted.toReversed() : sorted
+    fetchTable(selectedTable)
 }
 
 function App() {
@@ -83,19 +42,26 @@ function App() {
             } else if (
                 isGetTableResponse(response) ||
                 isDeleteRecordResponse(response) ||
-                isInsertRecordResponse(response) || 
+                isInsertRecordResponse(response) ||
                 isEditRecordResponse(response)
             ) {
-                setTableEntries(response.body.result) 
+                setTableEntries(response.body.result)
             }
         })
 
         return () => {
-            sub.unsubscribe() 
+            sub.unsubscribe()
         }
     }, [])
 
-    const onTableBack = useCallback(() => {
+    const onBack = useCallback(() => {
+        const selectedTable = selectedTable$.getLatestValue()
+        if (!selectedTable) {
+            setTables([])
+            connectionInfo$.next(null)
+            return
+        }
+
         setTableEntries([])
         selectedTable$.next(null)
 
@@ -108,30 +74,26 @@ function App() {
         network.out.send(createGetTablesRequest(connectInfo))
     }, [])
 
-    const onTableListBack = useCallback(() => {
-        setTables([])
-        connectionInfo$.next(null)
-    }, [])
-
     const onSort = useCallback((key: string, sortMode: SORT_MODE) => {
         setTableEntries(prev => sortTableEntries(prev, key, sortMode))
     }, [])
 
     return (
         <>
-            {tableEntries.length !== 0 && tables.length !== 0 && (
+            {tables.length !== 0 && (
+                <div>
+                    <button type='button' onClick={onBack} >Back ↩️</button>
+                    <button type='button' onClick={onRefresh} >Refresh 🔄</button>
+                </div>
+            )}
+            {tables.length === 0 && <Connect />}
+            {tables.length !== 0 && tableEntries.length === 0 && <TableList tables={tables} />}
+            {tableEntries.length !== 0 && (
                 <Table
-                    onBack={onTableBack}
                     onSort={onSort}
                     entries={tableEntries}
                 />
             )}
-            {tables.length !== 0 && tableEntries.length === 0 && (
-                <TableList
-                    onBack={onTableListBack}
-                    tables={tables} />
-            )}
-            {tables.length === 0 && tableEntries.length === 0 && <Connect />}
         </>
     )
 }

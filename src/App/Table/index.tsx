@@ -1,10 +1,11 @@
-import { useMemo, useCallback, useState, useRef, FormEvent } from "react"
+import { useMemo, useState, useRef, FormEvent } from "react"
 import { useObservable } from "../../hooks"
 import { primaryKeys$ } from "../../state/primaryKeys"
-import { DEFAULT_SORT_MODE, SORT_MODE } from "./consts"
-import { insertRecord, refreshTable } from "./utils"
+import { SORT_MODE } from "./consts"
+import { insertRecord } from "./utils"
 import { Title } from "./Title"
 import { Row } from "./Row"
+import { useSorting } from "./hooks"
 import styles from "./index.module.css"
 
 const submitForm = (formElement: HTMLFormElement) => {
@@ -15,18 +16,14 @@ const submitForm = (formElement: HTMLFormElement) => {
 }
 
 type Props = {
-  entries: Array<Record<string, string>>
-  onBack?: () => void
-  onSort?: (key: string, sortMode: SORT_MODE) => void
+    entries: Array<Record<string, string>>
+    onSort: (key: string, sortMode: SORT_MODE) => void
 }
 
 export const Table: React.FC<Props> = ({
     entries: records,
-    onBack,
     onSort
 }) => {
-    const [sortColumn, setSortColumn] = useState<string>()
-    const [sortMode, setSortMode] = useState<SORT_MODE>()
     const [showSearch, setShowSearch] = useState(false)
     const [filters, setFilters] = useState<Record<string, string>>({})
 
@@ -35,6 +32,12 @@ export const Table: React.FC<Props> = ({
     const primaryKeys = useObservable(primaryKeys$) ?? []
 
     const columns = Object.keys(records[0])
+
+    const {
+        sortColumn,
+        sortMode,
+        onSort: onLocalSort
+    } = useSorting(onSort)
 
     const onSubmit = () => {
         const formElement = formRef.current
@@ -46,7 +49,7 @@ export const Table: React.FC<Props> = ({
         if (!isFormValid) {
             return
         }
-      
+
         submitForm(formElement)
     }
 
@@ -54,23 +57,6 @@ export const Table: React.FC<Props> = ({
         const target = e.target as unknown as { value: string }
         setFilters(prev => ({ ...prev, [column]: target.value }))
     }
-
-    const onLocalSort = useCallback((column: string) => {
-        setSortColumn(column)
-
-        if (!sortMode || sortColumn !== column) {
-            setSortMode(DEFAULT_SORT_MODE)
-            onSort?.(column, DEFAULT_SORT_MODE)
-            return
-        }
-
-        const oppositeSortMode = sortMode === SORT_MODE.DESCENDING
-            ? SORT_MODE.ASCENDING
-            : SORT_MODE.DESCENDING
-
-        onSort?.(column, oppositeSortMode)
-        setSortMode(oppositeSortMode)
-    }, [onSort, sortMode, sortColumn])
 
     const filtered = useMemo(() =>
         records.filter(record =>
@@ -88,12 +74,7 @@ export const Table: React.FC<Props> = ({
 
     return (
         <form ref={formRef}>
-            <div>
-                <button type='button' onClick={onBack}>Back ↩️</button>
-                <button type='button' onClick={refreshTable}>Refresh 🔄</button>
-            </div>
-
-            <Title/>
+            <Title />
 
             <table>
                 <thead>
@@ -110,8 +91,11 @@ export const Table: React.FC<Props> = ({
                                 </div>
                             </th>
                         )}
-                        <th onClick={() => {setShowSearch(prev =>!prev)}}>
-                          🔎
+                        <th onClick={() => {
+                            setShowSearch(prev => !prev)
+                            setFilters({})
+                        }}>
+                            🔎
                         </th>
                     </tr>
                 </thead>
@@ -128,14 +112,12 @@ export const Table: React.FC<Props> = ({
                             </td>
                         )}
                         <td className={styles.hoverableCell} onClick={() => setFilters({})}>
-                          Reset
+                            Reset
                         </td>
                     </tr>
                 )}
                 <tbody>
-                    {filtered.map((row, index) =>
-                        <Row key={index} row={row} />
-                    )}
+                    {filtered.map((row, index) => <Row key={index} row={row} />)}
                 </tbody>
                 <tfoot>
                     <tr>

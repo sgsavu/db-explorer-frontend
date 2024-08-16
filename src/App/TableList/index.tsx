@@ -1,37 +1,30 @@
-import { deleteTable, duplicateTable, fetchTableList, selectTable } from "./utils"
-import styles from "./index.module.css"
+import { TableList as TableListComponent } from "../../Components/Views/TablesList"
+import { TABLE_LIST_ACTION, TableAction } from "../../Components/Views/TablesList/const"
+import { deleteTable, duplicateTable, selectTable } from "./utils"
 
-type Props = {
-  onBack?: () => void
-  tables: string[]
+const onTableAction = (tableAction: TableAction) => {
+    const { action, tableName } = tableAction
+
+    switch (action) {
+    case TABLE_LIST_ACTION.SELECT:
+        selectTable(tableName)
+        break
+    case TABLE_LIST_ACTION.DUPLICATE:
+        duplicateTable(tableName)
+        break
+    case TABLE_LIST_ACTION.DELETE:
+        deleteTable(tableName)
+        break
+    }
 }
 
-export const TableList: React.FC<Props> = ({
-    onBack,
-    tables
-}) => {
+type Props = { tables: string[] }
+
+export const TableList: React.FC<Props> = ({ tables }) => {
     return (
-        <>
-            <div>
-                <button onClick={onBack}>Back ↩️</button>
-                <button onClick={fetchTableList}>Refresh 🔄</button>
-            </div>
-            <h1>Tables</h1>
-            {tables.map(table =>
-                <div className={styles.entry} key={table}>
-                    <button onClick={() => selectTable(table)}>
-                        {table}
-                    </button>
-                    <div>
-                        <button onClick={() => duplicateTable(table)}>
-                        ⎘
-                        </button>
-                        <button onClick={() => deleteTable(table)}>
-                        ❌
-                        </button>
-                    </div>
-                </div>
-            )}
-        </>
+        <TableListComponent
+            onTableAction={onTableAction}
+            tables={tables}
+        />
     )
 }

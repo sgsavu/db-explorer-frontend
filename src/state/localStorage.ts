@@ -3,12 +3,11 @@
     Luckily I am one of the best programmers of all time and I have made it easy to use.
 */
 
-import { DBConnect } from "../App/Connect"
+import { SQLConnectionInfo } from "../Components/Views/Connect/ConnectForm/const"
+import { RecentSQLConnectionInfo } from "../Components/Views/Connect/RecentConnections/const"
 
 const INDEXED_DB = "mysql-visualizer"
 const OBJECT_STORE = "logins"
-
-export type StorageDBConnect = DBConnect & { id: string }
 
 type SubscriberFn = (value: boolean) => void
 
@@ -53,7 +52,7 @@ const createIndexedDB = (dbName: string, objectStore: string) => {
                 openSubs = rest
             }
         },
-        set: (value: StorageDBConnect) =>
+        set: (value: RecentSQLConnectionInfo) =>
             new Promise<IDBValidKey>((resolve, reject) => {
                 if (!db) { reject("Unable to add to indexedDB."); return }
 
@@ -65,31 +64,31 @@ const createIndexedDB = (dbName: string, objectStore: string) => {
                 request.onsuccess = () => { resolve(request.result) }
                 request.onerror = () => { reject(request.error) }
             }),
-        get: (id: StorageDBConnect["id"]) =>
-            new Promise<DBConnect>((resolve, reject) => {
+        get: (id: RecentSQLConnectionInfo["id"]) =>
+            new Promise<SQLConnectionInfo>((resolve, reject) => {
                 if (!db) { reject("Unable to get from indexedDB."); return }
 
                 const request = db
                     .transaction([OBJECT_STORE], "readonly")
                     .objectStore(OBJECT_STORE)
-                    .get(id) as IDBRequest<StorageDBConnect>
+                    .get(id) as IDBRequest<RecentSQLConnectionInfo>
 
                 request.onsuccess = () => { resolve(request.result) }
                 request.onerror = () => { reject(request.error) }
             }),
         dbGetAll: () =>
-            new Promise<Array<StorageDBConnect>>((resolve, reject) => {
+            new Promise<Array<RecentSQLConnectionInfo>>((resolve, reject) => {
                 if (!db) { reject("Unable to get from indexedDB."); return }
 
                 const request = db
                     .transaction([OBJECT_STORE], "readonly")
                     .objectStore(OBJECT_STORE)
-                    .getAll() as IDBRequest<Array<StorageDBConnect>>
+                    .getAll() as IDBRequest<Array<RecentSQLConnectionInfo>>
 
                 request.onsuccess = () => { resolve(request.result) }
                 request.onerror = () => { reject(request.error) }
             }),
-        dbRemove: (id: StorageDBConnect["id"]) =>
+        dbRemove: (id: RecentSQLConnectionInfo["id"]) =>
             new Promise<undefined>((resolve, reject) => {
                 if (!db) { reject("Unable to remove from indexedDB."); return }
 
