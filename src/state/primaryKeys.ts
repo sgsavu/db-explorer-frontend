@@ -1,4 +1,4 @@
-import { createSubject } from "./subject";
+import { createSubject } from "@sgsavu/subject";
 
 export const primaryKeys$ = createSubject<Array<string> | null>({
     initValue: null,

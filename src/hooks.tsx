@@ -1,5 +1,5 @@
+import { Subject } from "@sgsavu/subject";
 import { useEffect, useState, SetStateAction } from "react";
-import { Subject } from "./state/subject";
 
 export const useObservable = <T,>(observable: Subject<T>) => {
     const [value, setValue] = useState<T>()

@@ -1,4 +1,4 @@
-import { createSubject } from "./subject";
+import { createSubject } from "@sgsavu/subject";
 
 export const tableList$ = createSubject<Array<string> | null>({
     initValue: null,
