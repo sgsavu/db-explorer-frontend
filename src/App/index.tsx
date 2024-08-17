@@ -13,8 +13,7 @@ import { isEditRecordResponse } from "../state/network/messages/editRecord"
 import { isDuplicateTableResponse } from "../state/network/messages/duplicateTable"
 import { isDeleteTableResponse } from "../state/network/messages/deleteTable"
 import { isRenameTableResponse } from "../state/network/messages/renameTable"
-import { fetchTable, fetchTableList, sortTableEntries, storeConnectionInfo } from "./utils"
-import { SORT_MODE } from "../Components/Views/Table/RecordTable/consts"
+import { fetchTable, fetchTableList, storeConnectionInfo } from "./utils"
 
 const onRefresh = () => {
     const selectedTable = selectedTable$.getLatestValue()
@@ -74,10 +73,6 @@ function App() {
         network.out.send(createGetTablesRequest(connectInfo))
     }, [])
 
-    const onSort = useCallback((key: string, sortMode: SORT_MODE) => {
-        setTableEntries(prev => sortTableEntries(prev, key, sortMode))
-    }, [])
-
     return (
         <>
             {tables.length !== 0 && (
@@ -90,7 +85,6 @@ function App() {
             {tables.length !== 0 && tableEntries.length === 0 && <TableList tables={tables} />}
             {tableEntries.length !== 0 && (
                 <Table
-                    onTableSort={onSort}
                     tableRecords={tableEntries}
                 />
             )}

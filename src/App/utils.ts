@@ -1,4 +1,3 @@
-import { SORT_MODE } from "../Components/Views/Table/RecordTable/consts"
 import { connectionInfo$ } from "../state/connectionInfo"
 import { sha256 } from "../state/crypto"
 import { localStorage } from "../state/localStorage"
@@ -28,36 +27,6 @@ export const fetchTable = (tableName: string) => {
         connectInfo, 
         tableName.toLowerCase()
     ))
-}
-
-export const sortTableEntries = (
-    tableEntries: Array<Record<string, string>>,
-    sortKey: string,
-    sortMode: SORT_MODE
-) => {
-    // TODO: remove when eslint updates
-    const typedEntries = tableEntries as typeof tableEntries & { toSorted: (fn: (a: typeof tableEntries[0], b: typeof tableEntries[0]) => number) => typeof tableEntries }
-
-    const sorted = typedEntries.toSorted((a, b) => {
-        const numberA = Number(a[sortKey])
-        const numberB = Number(b[sortKey])
-
-        if (isFinite(numberA) && isFinite(numberB)) {
-            return numberA - numberB
-        }
-
-        if (a[sortKey] < b[sortKey]) {
-            return -1
-        }
-        if (a[sortKey] > b[sortKey]) {
-            return 1
-        }
-        return 0
-    })
-
-    const typedSorted = sorted as typeof sorted & { toReversed: () => typeof typedEntries } // TODO: remove when eslint updates
-
-    return sortMode === SORT_MODE.DESCENDING ? typedSorted.toReversed() : sorted
 }
 
 export const storeConnectionInfo = () => {

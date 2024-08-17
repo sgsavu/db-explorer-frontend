@@ -7,14 +7,12 @@ import { Row } from "./Row"
 type Props = {
     entries: Array<Record<string, string>>
     onRecordAction: (recordAction: RecordAction) => void
-    onSort: (key: string, sortMode: SORT_MODE) => void
     primaryKeys: Array<string>
 }
 
 export const RecordTable: React.FC<Props> = ({
     entries: records,
     onRecordAction,
-    onSort,
     primaryKeys
 }) => {
     const [showSearch, setShowSearch] = useState(false)
@@ -25,10 +23,11 @@ export const RecordTable: React.FC<Props> = ({
     const columns = Object.keys(records[0])
 
     const {
+        sorted,
         sortColumn,
         sortMode,
-        onSort: onLocalSort
-    } = useSorting(onSort)
+        onSort
+    } = useSorting(records)
 
     const onSubmit = () => {
         const formElement = formRef.current
@@ -56,7 +55,7 @@ export const RecordTable: React.FC<Props> = ({
     }
 
     const filtered = useMemo(() =>
-        records.filter(record =>
+        sorted.filter(record =>
             Object.values(record).every((value, columnIndex) => {
                 const columnName = columns[columnIndex]
                 const filter = filters[columnName]
@@ -67,7 +66,7 @@ export const RecordTable: React.FC<Props> = ({
                 return value.match(dynamicRegex)
             })
         )
-    , [records, filters, columns])
+    , [sorted, filters, columns])
 
     return (
         <>
@@ -76,7 +75,7 @@ export const RecordTable: React.FC<Props> = ({
                     <thead>
                         <tr>
                             {columns.map(column =>
-                                <th onClick={() => onLocalSort(column)} key={column}>
+                                <th onClick={() => onSort(column)} key={column}>
                                     <div>
                                         {column} {primaryKeys.includes(column) ? "*" : ""}
                                         {sortMode && sortColumn === column && (

@@ -13,7 +13,6 @@ const onRecordAction = (data: RecordAction) => {
         record
     } = data
 
-
     switch (action) {
     case RECORD_TABLE_ACTION.INSERT:
         insertRecord(record)
@@ -27,10 +26,11 @@ const onRecordAction = (data: RecordAction) => {
     case RECORD_TABLE_ACTION.EDIT:
         if (!columnName || !columnValue) { return }
         editRecord(record, columnName, columnValue)
+        break
     }
 }
 
-type Props = Pick<TableProps, "onTableSort" | "tableRecords">
+type Props = Pick<TableProps, "tableRecords">
 
 export const Table: React.FC<Props> = props => {
     const primaryKeys = useObservable(primaryKeys$) ?? []
