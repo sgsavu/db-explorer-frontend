@@ -1,4 +1,4 @@
-import { Input, InputProps } from "../Input"
+import { Input, InputProps } from "../../../../Input"
 import styles from "./index.module.css"
 
 export type FieldProps = InputProps & {

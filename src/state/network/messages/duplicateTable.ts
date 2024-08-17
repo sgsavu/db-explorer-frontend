@@ -1,5 +1,6 @@
+import { Request, Response, STATUS_CODE } from "@sgsavu/io"
 import { SQLConnectionInfo } from "../../../Components/Views/Connect/ConnectForm/const"
-import { MESSAGE_ALIAS, Request, Response, RejectionBody, STATUS_CODE } from "../consts"
+import { MESSAGE_ALIAS, RejectionBody } from "../consts"
 
 export type DuplicateTableResponseBody = {
     result: Array<string>

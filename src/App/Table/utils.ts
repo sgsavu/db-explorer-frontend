@@ -1,6 +1,6 @@
 import { connectionInfo$ } from "../../state/connectionInfo"
 import { selectedTable$ } from "../../state/selectedTable"
-import { network } from "../../state/network/network"
+import { io } from "../../state/network/network"
 import { createDeleteRecordRequest } from "../../state/network/messages/deleteRecord"
 import { createInsertRecordRequest } from "../../state/network/messages/insertRecord"
 import { createEditRecordRequest } from "../../state/network/messages/editRecord"
@@ -23,7 +23,7 @@ export const insertRecord = (record: Record<string, string>) => {
 
     const recordValues = Object.values(record)
 
-    network.out.send(createInsertRecordRequest(
+    io.out.send(createInsertRecordRequest(
         connectInfo,
         selectedTable.toLowerCase(),
         recordValues
@@ -55,7 +55,7 @@ export const duplicateRecord = (record: Record<string, string>) => {
     })
     const recordValues = Object.values(copyRow)
 
-    network.out.send(createInsertRecordRequest(
+    io.out.send(createInsertRecordRequest(
         connectInfo,
         selectedTable.toLowerCase(),
         recordValues
@@ -77,7 +77,7 @@ export const deleteRecord = (record: Record<string, string>) => {
 
     const recordValues = Object.values(record)
 
-    network.out.send(createDeleteRecordRequest(
+    io.out.send(createDeleteRecordRequest(
         connectInfo,
         selectedTable.toLowerCase(),
         recordValues
@@ -106,7 +106,7 @@ export const editRecord = (row: Record<string, string>, columnName: string, colu
     const mainPrimaryKey = primaryKeys[0]
     const recordId = row[mainPrimaryKey]
 
-    network.out.send(createEditRecordRequest(
+    io.out.send(createEditRecordRequest(
         connectInfo,
         selectedTable,
         columnName,
@@ -131,7 +131,7 @@ export const renameTable = (newName: string) => {
 
     const formattedNewName = newName.trim().split(" ").join("-")
 
-    network.out.send(createRenameTableRequest(
+    io.out.send(createRenameTableRequest(
         connectInfo,
         selectedTable,
         formattedNewName

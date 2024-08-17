@@ -1,5 +1,5 @@
 import { FormEventHandler } from "react"
-import { Field } from "../../../Field"
+import { Field } from "./Field"
 import { SQLConnectionInfo } from "./const"
 
 export type ConnectFormProps = {

@@ -3,7 +3,7 @@ import { sha256 } from "../state/crypto"
 import { localStorage } from "../state/localStorage"
 import { createGetTableRequest } from "../state/network/messages/getTable"
 import { createGetTablesRequest } from "../state/network/messages/getTables"
-import { network } from "../state/network/network"
+import { io } from "../state/network/network"
 import { handleError } from "../utils"
 
 export const fetchTableList = () => {
@@ -13,7 +13,7 @@ export const fetchTableList = () => {
         return
     }
 
-    network.out.send(createGetTablesRequest(connectInfo))
+    io.out.send(createGetTablesRequest(connectInfo))
 }
 
 export const fetchTable = (tableName: string) => {
@@ -23,7 +23,7 @@ export const fetchTable = (tableName: string) => {
         return
     }
 
-    network.out.send(createGetTableRequest(
+    io.out.send(createGetTableRequest(
         connectInfo, 
         tableName.toLowerCase()
     ))

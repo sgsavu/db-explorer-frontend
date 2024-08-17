@@ -8,13 +8,13 @@ import { createGetPrimaryKeysRequest, isGetPrimaryKeysRejection, isGetPrimaryKey
 import { isGetTableRejection, isGetTableResponse } from "./state/network/messages/getTable"
 import { isGetTablesRejection, isGetTablesResponse } from "./state/network/messages/getTables"
 import { isInsertRecordRejection } from "./state/network/messages/insertRecord"
-import { network } from "./state/network/network"
+import { io } from "./state/network/network"
 import { primaryKeys$ } from "./state/primaryKeys"
 import { selectedTable$ } from "./state/selectedTable"
 import { tableList$ } from "./state/tableList"
 import { findArrayDiff } from "./utils"
 
-network.in.listen(resp => {
+io.in.listen(resp => {
     if (
         isGetTableRejection(resp) ||
         isInsertRecordRejection(resp) ||
@@ -40,7 +40,7 @@ network.in.listen(resp => {
             return
         }
 
-        network.out.send(createGetPrimaryKeysRequest(connectInfo, selectedTable))
+        io.out.send(createGetPrimaryKeysRequest(connectInfo, selectedTable))
     }
 
     if (isGetPrimaryKeysResponse(resp)) {

@@ -4,7 +4,7 @@ import { TableList } from "./TableList"
 import { Table } from "./Table"
 import { connectionInfo$ } from "../state/connectionInfo"
 import { selectedTable$ } from "../state/selectedTable"
-import { network } from "../state/network/network"
+import { io } from "../state/network/network"
 import { createGetTablesRequest, isGetTablesResponse } from "../state/network/messages/getTables"
 import { isGetTableResponse } from "../state/network/messages/getTable"
 import { isDeleteRecordResponse } from "../state/network/messages/deleteRecord"
@@ -29,7 +29,7 @@ function App() {
     const [tableEntries, setTableEntries] = useState<Array<Record<string, string>>>([])
 
     useEffect(() => {
-        const sub = network.in.listen(response => {
+        const sub = io.in.listen(response => {
             if (
                 isGetTablesResponse(response) ||
                 isDuplicateTableResponse(response) ||
@@ -70,7 +70,7 @@ function App() {
             return
         }
 
-        network.out.send(createGetTablesRequest(connectInfo))
+        io.out.send(createGetTablesRequest(connectInfo))
     }, [])
 
     return (
