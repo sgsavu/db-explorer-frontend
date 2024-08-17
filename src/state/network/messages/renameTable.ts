@@ -1,4 +1,4 @@
-import { DBConnect } from "../../../App/Connect"
+import { SQLConnectionInfo } from "../../../Components/Views/Connect/ConnectForm/const"
 import { MESSAGE_ALIAS, Request, Response, RejectionBody, STATUS_CODE } from "../consts"
 
 export type EditTableNameResponseBody = {
@@ -16,7 +16,7 @@ export const isRenameTableRejection = (response: Response): response is Response
     response.alias === MESSAGE_ALIAS.EDIT_TABLE_NAME &&
     response.statusCode !== STATUS_CODE.OK
 
-export const createRenameTableRequest = (connect: DBConnect, oldTableName: string, newTableName: string): Request => {
+export const createRenameTableRequest = (connect: SQLConnectionInfo, oldTableName: string, newTableName: string): Request => {
     return {
         alias: MESSAGE_ALIAS.EDIT_TABLE_NAME,
         config: {

@@ -1,4 +1,4 @@
-import { DBConnect } from "../../../App/Connect"
+import { SQLConnectionInfo } from "../../../Components/Views/Connect/ConnectForm/const"
 import { MESSAGE_ALIAS, Request, Response, RejectionBody, STATUS_CODE } from "../consts"
 
 export type DuplicateTableResponseBody = {
@@ -16,7 +16,7 @@ export const isDuplicateTableRejection = (response: Response): response is Respo
     response.alias === MESSAGE_ALIAS.DUPLICATE_TABLE &&
     response.statusCode !== STATUS_CODE.OK
 
-export const createDuplicateTableRequest = (connect: DBConnect, sourceTableName: string, newTableName: string): Request => {
+export const createDuplicateTableRequest = (connect: SQLConnectionInfo, sourceTableName: string, newTableName: string): Request => {
     return {
         alias: MESSAGE_ALIAS.DUPLICATE_TABLE,
         config: {

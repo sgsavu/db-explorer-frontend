@@ -1,4 +1,4 @@
-import { DBConnect } from "../../../App/Connect"
+import { SQLConnectionInfo } from "../../../Components/Views/Connect/ConnectForm/const"
 import { MESSAGE_ALIAS, Request, Response, RejectionBody, STATUS_CODE } from "../consts"
 
 export type EditRecordResponseBody = {
@@ -16,7 +16,7 @@ export const isEditRecordRejection = (response: Response): response is Response<
     response.alias === MESSAGE_ALIAS.EDIT_RECORD &&
     response.statusCode !== STATUS_CODE.OK
 
-export const createEditRecordRequest = (connect: DBConnect, tableName: string, field: string, value: string, primaryKey: string, recordId: string): Request => {
+export const createEditRecordRequest = (connect: SQLConnectionInfo, tableName: string, field: string, value: string, primaryKey: string, recordId: string): Request => {
     return {
         alias: MESSAGE_ALIAS.EDIT_RECORD,
         config: {

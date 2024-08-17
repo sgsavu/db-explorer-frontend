@@ -1,4 +1,4 @@
-import { DBConnect } from "../../../App/Connect"
+import { SQLConnectionInfo } from "../../../Components/Views/Connect/ConnectForm/const"
 import { MESSAGE_ALIAS, Request, Response, RejectionBody, STATUS_CODE } from "../consts"
 
 export type GetPrimaryKeysResponseBody = {
@@ -16,7 +16,7 @@ export const isGetPrimaryKeysRejection = (response: Response): response is Respo
     response.alias === MESSAGE_ALIAS.GET_PRIMARY_KEYS &&
     response.statusCode !== STATUS_CODE.OK
 
-export const createGetPrimaryKeysRequest = (connect: DBConnect, tableName: string): Request => {
+export const createGetPrimaryKeysRequest = (connect: SQLConnectionInfo, tableName: string): Request => {
     return {
         alias: MESSAGE_ALIAS.GET_PRIMARY_KEYS,
         config: {

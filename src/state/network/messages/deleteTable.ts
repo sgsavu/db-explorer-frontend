@@ -1,4 +1,4 @@
-import { DBConnect } from "../../../App/Connect"
+import { SQLConnectionInfo } from "../../../Components/Views/Connect/ConnectForm/const"
 import { MESSAGE_ALIAS, Request, Response, RejectionBody, STATUS_CODE } from "../consts"
 
 export type DeleteTableResponseBody = {
@@ -16,7 +16,7 @@ export const isDeleteTableRejection = (response: Response): response is Response
     response.alias === MESSAGE_ALIAS.DELETE_TABLE &&
     response.statusCode !== STATUS_CODE.OK
 
-export const createDeleteTableRequest = (connect: DBConnect, tableName: string): Request => {
+export const createDeleteTableRequest = (connect: SQLConnectionInfo, tableName: string): Request => {
     return {
         alias: MESSAGE_ALIAS.DELETE_TABLE,
         config: {

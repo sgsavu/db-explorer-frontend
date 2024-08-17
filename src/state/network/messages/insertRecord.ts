@@ -1,4 +1,4 @@
-import { DBConnect } from "../../../App/Connect"
+import { SQLConnectionInfo } from "../../../Components/Views/Connect/ConnectForm/const"
 import { MESSAGE_ALIAS, Request, Response, RejectionBody, STATUS_CODE } from "../consts"
 
 export type InsertRecordResponseBody = {
@@ -16,7 +16,7 @@ export const isInsertRecordRejection = (response: Response): response is Respons
     response.alias === MESSAGE_ALIAS.INSERT_RECORD &&
     response.statusCode !== STATUS_CODE.OK
 
-export const createInsertRecordRequest = (connect: DBConnect, tableName: string, record: Array<string>): Request => {
+export const createInsertRecordRequest = (connect: SQLConnectionInfo, tableName: string, record: Array<string>): Request => {
     return {
         alias: MESSAGE_ALIAS.INSERT_RECORD,
         config: {

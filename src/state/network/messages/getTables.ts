@@ -1,4 +1,4 @@
-import { DBConnect } from "../../../App/Connect"
+import { SQLConnectionInfo } from "../../../Components/Views/Connect/ConnectForm/const"
 import { MESSAGE_ALIAS, Request, Response, RejectionBody, STATUS_CODE } from "../consts"
 
 export type GetTablesResponseBody = {
@@ -16,7 +16,7 @@ export const isGetTablesRejection = (response: Response): response is Response<R
     response.alias === MESSAGE_ALIAS.GET_TABLES &&
     response.statusCode !== STATUS_CODE.OK
 
-export const createGetTablesRequest = (connect: DBConnect): Request => {
+export const createGetTablesRequest = (connect: SQLConnectionInfo): Request => {
     return {
         alias: MESSAGE_ALIAS.GET_TABLES,
         config: {
