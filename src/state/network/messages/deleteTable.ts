@@ -1,5 +1,5 @@
 import { Request, Response, STATUS_CODE } from "@sgsavu/io"
-import { SQLConnectionInfo } from "../../../Components/Views/Connect/ConnectForm/const"
+import { SQLConnectionInfo } from "@sgsavu/db-explorer-components"
 import { MESSAGE_ALIAS, RejectionBody } from "../consts"
 
 export type DeleteTableResponseBody = {
@@ -17,13 +17,13 @@ export const isDeleteTableRejection = (response: Response): response is Response
     response.alias === MESSAGE_ALIAS.DELETE_TABLE &&
     response.statusCode !== STATUS_CODE.OK
 
-export const createDeleteTableRequest = (connect: SQLConnectionInfo, tableName: string): Request => {
+export const createDeleteTableRequest = (connectionInfo: SQLConnectionInfo, tableName: string): Request => {
     return {
         alias: MESSAGE_ALIAS.DELETE_TABLE,
         config: {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ connect }),
+            body: JSON.stringify({ connectionInfo }),
         },
         url: "http://127.0.0.1:3000/v1/tables/" + tableName + "/"
     }

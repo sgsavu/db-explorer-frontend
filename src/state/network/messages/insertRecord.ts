@@ -1,5 +1,5 @@
 import { Request, Response, STATUS_CODE } from "@sgsavu/io"
-import { SQLConnectionInfo } from "../../../Components/Views/Connect/ConnectForm/const"
+import { SQLConnectionInfo } from "@sgsavu/db-explorer-components"
 import { MESSAGE_ALIAS, RejectionBody } from "../consts"
 
 export type InsertRecordResponseBody = {
@@ -17,13 +17,13 @@ export const isInsertRecordRejection = (response: Response): response is Respons
     response.alias === MESSAGE_ALIAS.INSERT_RECORD &&
     response.statusCode !== STATUS_CODE.OK
 
-export const createInsertRecordRequest = (connect: SQLConnectionInfo, tableName: string, record: Array<string>): Request => {
+export const createInsertRecordRequest = (connectionInfo: SQLConnectionInfo, tableName: string, record: Array<string>): Request => {
     return {
         alias: MESSAGE_ALIAS.INSERT_RECORD,
         config: {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ connect, record }),
+            body: JSON.stringify({ connectionInfo, record }),
         },
         url: "http://127.0.0.1:3000/v1/tables/" + tableName + "/records/"
     }

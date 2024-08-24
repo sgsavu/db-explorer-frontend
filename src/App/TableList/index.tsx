@@ -1,5 +1,4 @@
-import { TableList as TableListComponent } from "../../Components/Views/TablesList"
-import { TABLE_LIST_ACTION, TableAction } from "../../Components/Views/TablesList/const"
+import { TableList as TableListComponent, TABLE_LIST_ACTION, TableAction } from "@sgsavu/db-explorer-components"
 import { deleteTable, duplicateTable, selectTable } from "./utils"
 
 const onTableAction = (tableAction: TableAction) => {

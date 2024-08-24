@@ -3,9 +3,7 @@ import { localStorage } from "../../state/localStorage"
 import { connectionInfo$ } from "../../state/connectionInfo"
 import { createGetTablesRequest } from "../../state/network/messages/getTables"
 import { io } from "../../state/network/network"
-import { Connect as ConnectComponent } from "../../Components/Views/Connect"
-import { SQLConnectionInfo } from "../../Components/Views/Connect/ConnectForm/const"
-import { RecentSQLConnectionInfo } from "../../Components/Views/Connect/RecentConnections/const"
+import { Connect as ConnectComponent, RecentSQLConnectionInfo, SQLConnectionInfo } from "@sgsavu/db-explorer-components"
 
 const onConnect = (connectionInfo: SQLConnectionInfo) => {
     connectionInfo$.next(connectionInfo)
@@ -18,7 +16,7 @@ export const Connect: React.FC = () => {
     useEffect(() => {
         const cleanup = localStorage.isOpen(isOpen => {
             if (isOpen) {
-                localStorage.dbGetAll()
+                localStorage.getAll()
                     .then(setRecentConnections)
                     .catch(console.error)
             }

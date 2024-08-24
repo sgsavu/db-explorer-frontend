@@ -1,5 +1,4 @@
-import { RECORD_TABLE_ACTION, RecordAction } from "../../Components/Views/Table/RecordTable/consts"
-import { Table as TableComponent, TableProps } from "../../Components/Views/Table"
+import { Table as TableComponent, TableProps, RECORD_TABLE_ACTION, RecordAction } from "@sgsavu/db-explorer-components"
 import { deleteRecord, duplicateRecord, editRecord, insertRecord, renameTable } from "./utils"
 import { useObservable } from "../../hooks"
 import { selectedTable$ } from "../../state/selectedTable"

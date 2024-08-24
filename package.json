@@ -1,20 +1,19 @@
 {
-  "name": "mysql-visualizer-frontend",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "name": "db-explorer-frontend",
+  "version": "0.1.0",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "tsc && eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "lint:fix": "eslint . --fix",
-    "preview": "vite preview"
+    "lint:fix": "eslint . --fix"
   },
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "@sgsavu/db-explorer-components": "0.3.0",
+    "@sgsavu/io": "0.0.2",
+    "@sgsavu/local-storage": "0.1.1",
     "@sgsavu/subject": "0.1.1",
-    "@sgsavu/io": "0.0.2"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.37",

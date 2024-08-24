@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react"
+import { Button } from "@sgsavu/db-explorer-components"
 import { Connect } from "./Connect"
 import { TableList } from "./TableList"
 import { Table } from "./Table"
@@ -77,8 +78,8 @@ function App() {
         <>
             {tables.length !== 0 && (
                 <div>
-                    <button type='button' onClick={onBack} >Back ↩️</button>
-                    <button type='button' onClick={onRefresh} >Refresh 🔄</button>
+                    <Button type='button' onClick={onBack} >Back ↩️</Button>
+                    <Button type='button' onClick={onRefresh} >Refresh 🔄</Button>
                 </div>
             )}
             {tables.length === 0 && <Connect />}

@@ -1,6 +1,6 @@
 import { Request, Response, STATUS_CODE } from "@sgsavu/io"
-import { SQLConnectionInfo } from "../../../Components/Views/Connect/ConnectForm/const"
 import { MESSAGE_ALIAS, RejectionBody } from "../consts"
+import { SQLConnectionInfo } from "@sgsavu/db-explorer-components"
 
 export type DeleteRecordResponseBody = {
     result: Array<Record<string, string>>
@@ -17,13 +17,13 @@ export const isDeleteRecordRejection = (response: Response): response is Respons
     response.alias === MESSAGE_ALIAS.DELETE_RECORD &&
     response.statusCode !== STATUS_CODE.OK
 
-export const createDeleteRecordRequest = (connect: SQLConnectionInfo, tableName: string, record: Array<string>): Request => {
+export const createDeleteRecordRequest = (connectionInfo: SQLConnectionInfo, tableName: string, record: Array<string>): Request => {
     return {
         alias: MESSAGE_ALIAS.DELETE_RECORD,
         config: {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ connect, record }),
+            body: JSON.stringify({ connectionInfo, record }),
         },
         url: "http://127.0.0.1:3000/v1/tables/" + tableName + "/records/"
     }

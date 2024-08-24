@@ -1,5 +1,5 @@
 import { Request, Response, STATUS_CODE } from "@sgsavu/io"
-import { SQLConnectionInfo } from "../../../Components/Views/Connect/ConnectForm/const"
+import { SQLConnectionInfo } from "@sgsavu/db-explorer-components"
 import { MESSAGE_ALIAS, RejectionBody } from "../consts"
 
 export type DuplicateTableResponseBody = {
@@ -17,13 +17,13 @@ export const isDuplicateTableRejection = (response: Response): response is Respo
     response.alias === MESSAGE_ALIAS.DUPLICATE_TABLE &&
     response.statusCode !== STATUS_CODE.OK
 
-export const createDuplicateTableRequest = (connect: SQLConnectionInfo, sourceTableName: string, newTableName: string): Request => {
+export const createDuplicateTableRequest = (connectionInfo: SQLConnectionInfo, sourceTableName: string, newTableName: string): Request => {
     return {
         alias: MESSAGE_ALIAS.DUPLICATE_TABLE,
         config: {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ connect, sourceTableName, newTableName }),
+            body: JSON.stringify({ connectionInfo, sourceTableName, newTableName }),
         },
         url: "http://127.0.0.1:3000/v1/tables/"
     }

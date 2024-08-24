@@ -1,5 +1,5 @@
 import { Request, Response, STATUS_CODE } from "@sgsavu/io"
-import { SQLConnectionInfo } from "../../../Components/Views/Connect/ConnectForm/const"
+import { SQLConnectionInfo } from "@sgsavu/db-explorer-components"
 import { MESSAGE_ALIAS, RejectionBody } from "../consts"
 
 export type EditTableNameResponseBody = {
@@ -17,13 +17,13 @@ export const isRenameTableRejection = (response: Response): response is Response
     response.alias === MESSAGE_ALIAS.EDIT_TABLE_NAME &&
     response.statusCode !== STATUS_CODE.OK
 
-export const createRenameTableRequest = (connect: SQLConnectionInfo, oldTableName: string, newTableName: string): Request => {
+export const createRenameTableRequest = (connectionInfo: SQLConnectionInfo, oldTableName: string, newTableName: string): Request => {
     return {
         alias: MESSAGE_ALIAS.EDIT_TABLE_NAME,
         config: {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ connect, newTableName }),
+            body: JSON.stringify({ connectionInfo, newTableName }),
         },
         url: "http://127.0.0.1:3000/v1/tables/" + oldTableName + "/"
     }

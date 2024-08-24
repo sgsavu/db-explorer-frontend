@@ -1,5 +1,5 @@
 import { Request, Response, STATUS_CODE } from "@sgsavu/io"
-import { SQLConnectionInfo } from "../../../Components/Views/Connect/ConnectForm/const"
+import { SQLConnectionInfo } from "@sgsavu/db-explorer-components"
 import { MESSAGE_ALIAS, RejectionBody } from "../consts"
 
 export type EditRecordResponseBody = {
@@ -17,14 +17,14 @@ export const isEditRecordRejection = (response: Response): response is Response<
     response.alias === MESSAGE_ALIAS.EDIT_RECORD &&
     response.statusCode !== STATUS_CODE.OK
 
-export const createEditRecordRequest = (connect: SQLConnectionInfo, tableName: string, field: string, value: string, primaryKey: string, recordId: string): Request => {
+export const createEditRecordRequest = (connectionInfo: SQLConnectionInfo, tableName: string, field: string, value: string, primaryKey: string, recordId: string): Request => {
     return {
         alias: MESSAGE_ALIAS.EDIT_RECORD,
         config: {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ 
-                connect, 
+                connectionInfo, 
                 update: {
                     column: field,
                     value
