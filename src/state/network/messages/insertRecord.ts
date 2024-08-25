@@ -17,7 +17,7 @@ export const isInsertRecordRejection = (response: Response): response is Respons
     response.alias === MESSAGE_ALIAS.INSERT_RECORD &&
     response.statusCode !== STATUS_CODE.OK
 
-export const createInsertRecordRequest = (connectionInfo: SQLConnectionInfo, tableName: string, record: Array<string>): Request => {
+export const createInsertRecordRequest = (connectionInfo: SQLConnectionInfo, tableName: string, record: Record<string, string>): Request => {
     return {
         alias: MESSAGE_ALIAS.INSERT_RECORD,
         config: {

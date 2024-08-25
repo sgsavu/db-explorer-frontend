@@ -17,7 +17,7 @@ export const isEditRecordRejection = (response: Response): response is Response<
     response.alias === MESSAGE_ALIAS.EDIT_RECORD &&
     response.statusCode !== STATUS_CODE.OK
 
-export const createEditRecordRequest = (connectionInfo: SQLConnectionInfo, tableName: string, field: string, value: string, primaryKey: string, recordId: string): Request => {
+export const createEditRecordRequest = (connectionInfo: SQLConnectionInfo, tableName: string, field: string, value: string, record: Record<string, string>): Request => {
     return {
         alias: MESSAGE_ALIAS.EDIT_RECORD,
         config: {
@@ -25,13 +25,10 @@ export const createEditRecordRequest = (connectionInfo: SQLConnectionInfo, table
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ 
                 connectionInfo, 
+                record,
                 update: {
                     column: field,
                     value
-                },
-                recordInfo: {
-                    column: primaryKey,
-                    value: recordId
                 }
             }),
         },

@@ -17,7 +17,7 @@ export const isDeleteRecordRejection = (response: Response): response is Respons
     response.alias === MESSAGE_ALIAS.DELETE_RECORD &&
     response.statusCode !== STATUS_CODE.OK
 
-export const createDeleteRecordRequest = (connectionInfo: SQLConnectionInfo, tableName: string, record: Array<string>): Request => {
+export const createDeleteRecordRequest = (connectionInfo: SQLConnectionInfo, tableName: string, record: Record<string, string>): Request => {
     return {
         alias: MESSAGE_ALIAS.DELETE_RECORD,
         config: {
