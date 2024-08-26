@@ -12,7 +12,6 @@ import { io } from "./state/network/network"
 import { primaryKeys$ } from "./state/primaryKeys"
 import { selectedTable$ } from "./state/selectedTable"
 import { tableList$ } from "./state/tableList"
-import { findArrayDiff } from "./utils"
 
 io.in.listen(resp => {
     if (
@@ -62,8 +61,10 @@ io.in.listen(resp => {
 
         const newTableList = resp.body.result
 
-        const diff = findArrayDiff(oldTableList, newTableList)
-        const newSelectedTable = diff[0] === selectedTable ? diff[1] : diff[0]
+        const oldTableListSet = new Set(oldTableList)
+        const newTables = newTableList.filter(table => !oldTableListSet.has(table))
+
+        const newSelectedTable = newTables[0]
 
         selectedTable$.next(newSelectedTable)
     }

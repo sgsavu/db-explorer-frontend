@@ -3,7 +3,6 @@ import { createDeleteTableRequest } from "../../state/network/messages/deleteTab
 import { createDuplicateTableRequest } from "../../state/network/messages/duplicateTable"
 import { io } from "../../state/network/network"
 import { selectedTable$ } from "../../state/selectedTable"
-import { generateShortId } from "../../utils"
 import { fetchTable } from "../utils"
 
 export const selectTable = (tableName: string) => {
@@ -19,12 +18,10 @@ export const duplicateTable = (sourceTableName: string) => {
     }
 
     const sourceTableNameFormatted = sourceTableName.toLowerCase()
-    const newTableName = sourceTableName + "-copy-" + generateShortId()
 
     io.out.send(createDuplicateTableRequest(
         connectInfo,
-        sourceTableNameFormatted,
-        newTableName
+        sourceTableNameFormatted
     ))
 }
 
