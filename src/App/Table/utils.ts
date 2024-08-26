@@ -6,6 +6,7 @@ import { createInsertRecordRequest } from "../../state/network/messages/insertRe
 import { createEditRecordRequest } from "../../state/network/messages/editRecord"
 import { primaryKeys$ } from "../../state/primaryKeys"
 import { createRenameTableRequest } from "../../state/network/messages/renameTable"
+import { createDuplicateRecordRequest } from "../../state/network/messages/duplicateRecord"
 
 export const insertRecord = (record: Record<string, string>) => {
     const connectInfo = connectionInfo$.getLatestValue()
@@ -74,7 +75,11 @@ export const duplicateRecord = (record: Record<string, string>) => {
         return
     }
 
-    console.warn(record)
+    io.out.send(createDuplicateRecordRequest(
+        connectInfo,
+        selectedTable.toLowerCase(),
+        record
+    ))
 }
 
 export const deleteRecord = (record: Record<string, string>) => {

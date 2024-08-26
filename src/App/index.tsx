@@ -16,6 +16,7 @@ import { isDeleteTableResponse } from "../state/network/messages/deleteTable"
 import { isRenameTableResponse } from "../state/network/messages/renameTable"
 import { fetchTable, fetchTableList, storeConnectionInfo } from "./utils"
 import { TableRecord } from "../state/network/types"
+import { isDuplicateRecordResponse } from "../state/network/messages/duplicateRecord"
 
 const onRefresh = () => {
     const selectedTable = selectedTable$.getLatestValue()
@@ -44,7 +45,8 @@ function App() {
                 isGetTableResponse(response) ||
                 isDeleteRecordResponse(response) ||
                 isInsertRecordResponse(response) ||
-                isEditRecordResponse(response)
+                isEditRecordResponse(response) ||
+                isDuplicateRecordResponse(response)
             ) {
                 setTableEntries(response.body.result)
             }

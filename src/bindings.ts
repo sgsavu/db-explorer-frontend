@@ -12,6 +12,7 @@ import { io } from "./state/network/network"
 import { primaryKeys$ } from "./state/primaryKeys"
 import { selectedTable$ } from "./state/selectedTable"
 import { tableList$ } from "./state/tableList"
+import { isDuplicateRecordRejection } from "./state/network/messages/duplicateRecord"
 
 io.in.listen(resp => {
     if (
@@ -23,7 +24,8 @@ io.in.listen(resp => {
         isGetPrimaryKeysRejection(resp) ||
         isDuplicateTableRejection(resp) ||
         isDeleteTableRejection(resp) ||
-        isRenameTableRejection(resp)
+        isRenameTableRejection(resp) ||
+        isDuplicateRecordRejection(resp)
     ) { window.alert(resp.body.error) }
 
     if (isGetTableResponse(resp)) {

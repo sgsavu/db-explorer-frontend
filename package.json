@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@sgsavu/db-explorer-components": "0.4.3",
-    "@sgsavu/io": "0.0.2",
+    "@sgsavu/io": "0.0.4",
     "@sgsavu/local-storage": "0.1.1",
     "@sgsavu/subject": "0.1.1",
     "react": "^18.2.0",
