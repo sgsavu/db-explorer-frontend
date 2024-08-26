@@ -1,6 +1,8 @@
 import { Request, Response, STATUS_CODE } from "@sgsavu/io"
 import { SQLConnectionInfo } from "@sgsavu/db-explorer-components"
-import { MESSAGE_ALIAS, RejectionBody } from "../consts"
+import { MESSAGE_ALIAS } from "../consts"
+import { RejectionBody } from "../types"
+import { convertConnectionInfoToHeaders } from "../utils"
 
 export type DuplicateTableResponseBody = {
     result: Array<string>
@@ -22,8 +24,11 @@ export const createDuplicateTableRequest = (connectionInfo: SQLConnectionInfo, s
         alias: MESSAGE_ALIAS.DUPLICATE_TABLE,
         config: {
             method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ connectionInfo, sourceTableName, newTableName }),
+            headers: { 
+                "Content-Type": "application/json",
+                ...convertConnectionInfoToHeaders(connectionInfo)
+            },
+            body: JSON.stringify({ sourceTableName, newTableName }),
         },
         url: "http://127.0.0.1:3000/v1/tables/"
     }

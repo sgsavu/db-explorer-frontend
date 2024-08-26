@@ -1,6 +1,8 @@
 import { Request, Response, STATUS_CODE } from "@sgsavu/io"
 import { SQLConnectionInfo } from "@sgsavu/db-explorer-components"
-import { MESSAGE_ALIAS, RejectionBody } from "../consts"
+import { MESSAGE_ALIAS } from "../consts"
+import { RejectionBody } from "../types"
+import { convertConnectionInfoToHeaders } from "../utils"
 
 export type EditTableNameResponseBody = {
     result: Array<string>
@@ -22,8 +24,11 @@ export const createRenameTableRequest = (connectionInfo: SQLConnectionInfo, oldT
         alias: MESSAGE_ALIAS.EDIT_TABLE_NAME,
         config: {
             method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ connectionInfo, newTableName }),
+            headers: { 
+                "Content-Type": "application/json",
+                ...convertConnectionInfoToHeaders(connectionInfo)
+            },
+            body: JSON.stringify({ newTableName }),
         },
         url: "http://127.0.0.1:3000/v1/tables/" + oldTableName + "/"
     }

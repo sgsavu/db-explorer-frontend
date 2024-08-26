@@ -1,9 +1,11 @@
 import { Request, Response, STATUS_CODE } from "@sgsavu/io"
-import { MESSAGE_ALIAS, RejectionBody } from "../consts"
+import { MESSAGE_ALIAS } from "../consts"
 import { SQLConnectionInfo } from "@sgsavu/db-explorer-components"
+import { RejectionBody, TableRecord } from "../types"
+import { convertConnectionInfoToHeaders } from "../utils"
 
 export type DeleteRecordResponseBody = {
-    result: Array<Record<string, string>>
+    result: Array<TableRecord>
 }
 
 export const isDeleteRecordRequest = (request: Request): request is Request =>
@@ -22,8 +24,11 @@ export const createDeleteRecordRequest = (connectionInfo: SQLConnectionInfo, tab
         alias: MESSAGE_ALIAS.DELETE_RECORD,
         config: {
             method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ connectionInfo, record }),
+            headers: { 
+                "Content-Type": "application/json",
+                ...convertConnectionInfoToHeaders(connectionInfo)
+            },
+            body: JSON.stringify({ record }),
         },
         url: "http://127.0.0.1:3000/v1/tables/" + tableName + "/records/"
     }

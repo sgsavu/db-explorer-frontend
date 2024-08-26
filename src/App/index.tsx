@@ -15,6 +15,7 @@ import { isDuplicateTableResponse } from "../state/network/messages/duplicateTab
 import { isDeleteTableResponse } from "../state/network/messages/deleteTable"
 import { isRenameTableResponse } from "../state/network/messages/renameTable"
 import { fetchTable, fetchTableList, storeConnectionInfo } from "./utils"
+import { TableRecord } from "../state/network/types"
 
 const onRefresh = () => {
     const selectedTable = selectedTable$.getLatestValue()
@@ -27,7 +28,7 @@ const onRefresh = () => {
 
 function App() {
     const [tables, setTables] = useState<Array<string>>([])
-    const [tableEntries, setTableEntries] = useState<Array<Record<string, string>>>([])
+    const [tableEntries, setTableEntries] = useState<Array<TableRecord>>([])
 
     useEffect(() => {
         const sub = io.in.listen(response => {
@@ -86,7 +87,7 @@ function App() {
             {tables.length !== 0 && tableEntries.length === 0 && <TableList tables={tables} />}
             {tableEntries.length !== 0 && (
                 <Table
-                    tableRecords={tableEntries}
+                    tableRecords={tableEntries as Array<Record<string, string>>} // TODO: fix types
                 />
             )}
         </>

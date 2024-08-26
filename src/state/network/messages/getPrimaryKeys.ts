@@ -1,6 +1,8 @@
 import { Request, Response, STATUS_CODE } from "@sgsavu/io"
 import { SQLConnectionInfo } from "@sgsavu/db-explorer-components"
-import { MESSAGE_ALIAS, RejectionBody } from "../consts"
+import { MESSAGE_ALIAS } from "../consts"
+import { RejectionBody } from "../types"
+import { convertConnectionInfoToHeaders } from "../utils"
 
 export type GetPrimaryKeysResponseBody = {
     result: Array<string>
@@ -21,9 +23,11 @@ export const createGetPrimaryKeysRequest = (connectionInfo: SQLConnectionInfo, t
     return {
         alias: MESSAGE_ALIAS.GET_PRIMARY_KEYS,
         config: {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ connectionInfo }),
+            method: "GET",
+            headers: { 
+                "Content-Type": "application/json",
+                ...convertConnectionInfoToHeaders(connectionInfo)
+            }
         },
         url: "http://127.0.0.1:3000/v1/tables/" + tableName + "/primary-keys/"
     }

@@ -9,7 +9,3 @@ export enum MESSAGE_ALIAS {
     GET_TABLES = "GET_TABLES",
     GET_TABLE = "GET_TABLE"
 }
-
-export type RejectionBody = {
-    error: string
-}

@@ -1,6 +1,8 @@
 import { Request, Response, STATUS_CODE } from "@sgsavu/io"
 import { SQLConnectionInfo } from "@sgsavu/db-explorer-components"
-import { MESSAGE_ALIAS, RejectionBody } from "../consts"
+import { MESSAGE_ALIAS } from "../consts"
+import { RejectionBody } from "../types"
+import { convertConnectionInfoToHeaders } from "../utils"
 
 export type DeleteTableResponseBody = {
     result: Array<string>
@@ -22,8 +24,10 @@ export const createDeleteTableRequest = (connectionInfo: SQLConnectionInfo, tabl
         alias: MESSAGE_ALIAS.DELETE_TABLE,
         config: {
             method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ connectionInfo }),
+            headers: { 
+                "Content-Type": "application/json",
+                ...convertConnectionInfoToHeaders(connectionInfo)
+            }
         },
         url: "http://127.0.0.1:3000/v1/tables/" + tableName + "/"
     }

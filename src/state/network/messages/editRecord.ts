@@ -1,9 +1,11 @@
 import { Request, Response, STATUS_CODE } from "@sgsavu/io"
 import { SQLConnectionInfo } from "@sgsavu/db-explorer-components"
-import { MESSAGE_ALIAS, RejectionBody } from "../consts"
+import { MESSAGE_ALIAS } from "../consts"
+import { RejectionBody, TableRecord } from "../types"
+import { convertConnectionInfoToHeaders } from "../utils"
 
 export type EditRecordResponseBody = {
-    result: Array<Record<string, string>>
+    result: Array<TableRecord>
 }
 
 export const isEditRecordRequest = (request: Request): request is Request =>
@@ -22,9 +24,11 @@ export const createEditRecordRequest = (connectionInfo: SQLConnectionInfo, table
         alias: MESSAGE_ALIAS.EDIT_RECORD,
         config: {
             method: "PATCH",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+                "Content-Type": "application/json",
+                ...convertConnectionInfoToHeaders(connectionInfo)
+            },
             body: JSON.stringify({ 
-                connectionInfo, 
                 record,
                 update: {
                     column: field,
